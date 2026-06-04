@@ -239,7 +239,145 @@
   <div style="max-width: 220px; margin: 16px auto 0;"><canvas id="simpleSatChart" width="200" height="200"></canvas></div>
   <div style="text-align:center; font-size:0.7rem; margin-top:8px;">👆 修改上方数值，占比和饼图实时更新</div>
 </div>
+<!-- 极简日历卡片 -->
+<div class="card">
+  <div class="section-header">
+    <div class="section-icon">📅</div>
+    <div class="section-title">投资日历</div>
+  </div>
+  <div id="simpleCalendar" style="background: rgba(0,0,0,0.3); border-radius: 24px; padding: 16px;">
+    <!-- 日历头部 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <button id="prevMonthBtn" style="background: rgba(255,255,255,0.1); border: none; color: white; font-size: 1.2rem; width: 32px; height: 32px; border-radius: 16px; cursor: pointer;">◀</button>
+      <span id="monthYear" style="font-weight: 600; font-size: 1.1rem;"></span>
+      <button id="nextMonthBtn" style="background: rgba(255,255,255,0.1); border: none; color: white; font-size: 1.2rem; width: 32px; height: 32px; border-radius: 16px; cursor: pointer;">▶</button>
+    </div>
+    <!-- 星期标题 -->
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 8px; font-size: 0.7rem; font-weight: 600; color: var(--text-secondary);">
+      <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+    </div>
+    <!-- 日期网格 -->
+    <div id="calendarDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;"></div>
+    <!-- 图例 -->
+    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 16px; font-size: 0.7rem; color: var(--text-secondary);">
+      <span><span style="display: inline-block; width: 12px; height: 12px; background: #ffcc00; border-radius: 2px; margin-right: 4px;"></span> 季度检视日</span>
+      <span><span style="display: inline-block; width: 12px; height: 12px; background: #0a84ff; border-radius: 2px; margin-right: 4px;"></span> 定投日（周三/1日/15日）</span>
+    </div>
+  </div>
+</div>
 
+<script>
+  (function() {
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth(); // 0-11
+
+    // 获取某年某月的第一天是星期几（周一为0，周日为6）
+    function getFirstDayOfMonth(year, month) {
+      const date = new Date(year, month, 1);
+      let day = date.getDay(); // 0周日 ~ 6周六
+      // 转换为周一为0
+      return (day === 0 ? 6 : day - 1);
+    }
+
+    // 获取某年某月的总天数
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    // 判断某日期是否为季度检视日（1/4/7/10月的第一个周六）
+    function isQuarterReview(year, month, day) {
+      const months = [0, 3, 6, 9]; // 1月(0),4月(3),7月(6),10月(9)
+      if (!months.includes(month)) return false;
+      const date = new Date(year, month, day);
+      if (date.getDay() !== 6) return false; // 周六
+      // 判断是否是第一个周六：日期 <= 7
+      return day <= 7;
+    }
+
+    // 判断是否为定投日（每周三，每月1日，每月15日）
+    function isInvestmentDay(year, month, day) {
+      const date = new Date(year, month, day);
+      const isWednesday = (date.getDay() === 3);
+      const isFirstOrFifteenth = (day === 1 || day === 15);
+      return isWednesday || isFirstOrFifteenth;
+    }
+
+    // 渲染日历
+    function renderCalendar() {
+      const firstDayOfWeek = getFirstDayOfMonth(currentYear, currentMonth); // 周一为0
+      const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+      
+      // 生成日期格子（42格，保证6行）
+      const totalCells = 42;
+      let cells = [];
+      for (let i = 0; i < totalCells; i++) {
+        const dayNumber = i - firstDayOfWeek + 1;
+        if (dayNumber < 1 || dayNumber > daysInMonth) {
+          cells.push({ day: null, isReview: false, isInvestment: false });
+        } else {
+          const isReview = isQuarterReview(currentYear, currentMonth, dayNumber);
+          const isInvestment = isInvestmentDay(currentYear, currentMonth, dayNumber);
+          cells.push({ day: dayNumber, isReview, isInvestment });
+        }
+      }
+
+      // 更新月份显示
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      document.getElementById('monthYear').innerText = `${currentYear}年 ${monthNames[currentMonth]}`;
+
+      // 生成HTML
+      const container = document.getElementById('calendarDays');
+      container.innerHTML = cells.map(cell => {
+        if (cell.day === null) {
+          return `<div style="height: 36px;"></div>`;
+        }
+        let bgColor = '';
+        let textColor = 'white';
+        if (cell.isReview) {
+          bgColor = '#ffcc00';
+          textColor = '#1e1e2e';
+        } else if (cell.isInvestment) {
+          bgColor = '#0a84ff';
+          textColor = 'white';
+        } else {
+          bgColor = 'rgba(255,255,255,0.05)';
+        }
+        return `<div style="height: 36px; display: flex; align-items: center; justify-content: center; background: ${bgColor}; border-radius: 12px; font-size: 0.8rem; font-weight: 500; color: ${textColor};">${cell.day}</div>`;
+      }).join('');
+    }
+
+    // 切换月份
+    function prevMonth() {
+      let newMonth = currentMonth - 1;
+      let newYear = currentYear;
+      if (newMonth < 0) {
+        newMonth = 11;
+        newYear--;
+      }
+      currentYear = newYear;
+      currentMonth = newMonth;
+      renderCalendar();
+    }
+    function nextMonth() {
+      let newMonth = currentMonth + 1;
+      let newYear = currentYear;
+      if (newMonth > 11) {
+        newMonth = 0;
+        newYear++;
+      }
+      currentYear = newYear;
+      currentMonth = newMonth;
+      renderCalendar();
+    }
+
+    // 绑定按钮事件
+    document.getElementById('prevMonthBtn').addEventListener('click', prevMonth);
+    document.getElementById('nextMonthBtn').addEventListener('click', nextMonth);
+    
+    // 初始渲染
+    renderCalendar();
+  })();
+</script>
 <!-- 三条铁律 -->
 <div class="card">
   <div class="section-header"><div class="section-icon">🔒</div><div class="section-title">📜 三条铁律</div></div>
