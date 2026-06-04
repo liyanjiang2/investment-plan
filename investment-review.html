@@ -1,1138 +1,187 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>五年投资实验 · 持仓监视</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
-  </script>
-  <style>
-    :root {
-      --bg: #000000;
-      --card-bg: rgba(28, 28, 30, 0.78);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #ffffff;
-      --text-secondary: #98989d;
-      --green: #30d158;
-      --red: #ff453a;
-      --yellow: #ff9f0a;
-      --blue: #0a84ff;
-      --purple: #bf5af2;
-      --cyan: #64d2ff;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.5);
-      --radius: 18px;
-      --font-number: 'Times New Roman', 'Times', serif;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding: 20px 16px 40px;
-      max-width: 860px;
-      margin: 0 auto;
-      -webkit-font-smoothing: antialiased;
-      position: relative;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background:
-        radial-gradient(ellipse at 20% 20%, rgba(10, 132, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 60%, rgba(191, 90, 242, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 90%, rgba(255, 159, 10, 0.05) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    /* 卡片入场动画 */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .card {
-      animation: fadeInUp 0.6s ease both;
-    }
-    .card:nth-child(1) { animation-delay: 0.05s; }
-    .card:nth-child(2) { animation-delay: 0.1s; }
-    .card:nth-child(3) { animation-delay: 0.15s; }
-    .card:nth-child(4) { animation-delay: 0.2s; }
-    .card:nth-child(5) { animation-delay: 0.25s; }
-    .card:nth-child(6) { animation-delay: 0.3s; }
-    .card:nth-child(7) { animation-delay: 0.35s; }
-    .card:nth-child(8) { animation-delay: 0.4s; }
-    .card:nth-child(9) { animation-delay: 0.45s; }
-
-    /* 标题流动渐变 */
-    header .title {
-      background: linear-gradient(135deg, #ff9f0a, #ff375f, #bf5af2, #ff9f0a);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientFlow 6s ease infinite;
-    }
-    @keyframes gradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* 进度条光扫 */
-    .kpi-bar {
-      position: relative;
-      overflow: hidden;
-    }
-    .kpi-bar::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: shimmer 2.5s infinite;
-    }
-    @keyframes shimmer {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-    .kpi-fill {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* KPI数值微动 */
-    .kpi-value {
-      transition: transform 0.2s;
-    }
-    .kpi-value:hover {
-      transform: scale(1.05);
-    }
-
-    /* 按钮涟漪 */
-    .btn {
-      position: relative;
-      overflow: hidden;
-    }
-    .btn::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      transform: translate(-50%, -50%);
-      transition: width 0.4s, height 0.4s;
-    }
-    .btn:active::after {
-      width: 200px;
-      height: 200px;
-    }
-
-    /* 分析卡片悬停 */
-    .analysis-card {
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .analysis-card:hover {
-      transform: translateX(4px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    /* 规则触发脉冲增强 */
-    @keyframes pulse-dark {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,69,58,0.4); }
-      50% { opacity: 0.85; box-shadow: 0 0 0 8px rgba(255,69,58,0); }
-    }
-
-    header {
-      text-align: left;
-      padding: 16px 0 8px;
-      position: relative;
-      z-index: 1;
-    }
-    header .subtitle {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
-      box-shadow: var(--shadow);
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .section-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-    }
-    .section-icon.yellow { background: rgba(255, 159, 10, 0.18); color: var(--yellow); }
-    .section-icon.green { background: rgba(48, 209, 88, 0.18); color: var(--green); }
-    .section-icon.blue { background: rgba(10, 132, 255, 0.18); color: var(--blue); }
-    .section-icon.purple { background: rgba(191, 90, 242, 0.18); color: var(--purple); }
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: -0.1px;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-    }
-    .alert-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .alert-chip {
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      background: rgba(255, 159, 10, 0.15);
-      color: #ffb340;
-    }
-    .input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .input-item label {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-    .input-item input {
-      width: 100%;
-      padding: 11px 14px;
-      background: rgba(44, 44, 46, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      color: var(--text);
-      font-family: var(--font-number);
-      font-size: 0.88rem;
-      outline: none;
-      transition: 0.15s;
-    }
-    .input-item input:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.18);
-    }
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-    .btn {
-      padding: 10px 18px;
-      border-radius: 22px;
-      font-weight: 600;
-      font-size: 0.78rem;
-      border: none;
-      background: rgba(44, 44, 46, 0.8);
-      color: var(--text);
-      cursor: pointer;
-      transition: 0.15s;
-    }
-    .btn-primary {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
-    }
-    .rule-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 13px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .rule-item:last-child { border-bottom: none; }
-    .rule-name { font-weight: 600; font-size: 0.9rem; }
-    .rule-desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
-    .rule-badge {
-      padding: 4px 12px;
-      border-radius: 14px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .badge-ok { background: rgba(48, 209, 88, 0.15); color: var(--green); }
-    .badge-warn {
-      background: rgba(255, 69, 58, 0.18);
-      color: var(--red);
-      animation: pulse-dark 2s infinite;
-    }
-    .badge-info { background: rgba(10, 132, 255, 0.15); color: var(--blue); }
-    .chart-wrap {
-      position: relative;
-      height: 190px;
-      width: 190px;
-      margin: 0 auto 10px;
-    }
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-    }
-    .legend-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 3px;
-    }
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .kpi {
-      background: rgba(44, 44, 46, 0.5);
-      border-radius: 14px;
-      padding: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-    .kpi-value {
-      font-size: 1.7rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      font-family: var(--font-number);
-    }
-    .kpi-label {
-      font-size: 0.68rem;
-      color: var(--text-secondary);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .kpi-bar {
-      height: 4px;
-      border-radius: 4px;
-      margin-top: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-    }
-    .kpi-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
-    }
-    .holding-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .holding-card:last-child { border-bottom: none; }
-    .holding-left { display: flex; align-items: center; gap: 10px; }
-    .holding-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
-    .holding-icon.sat { background: rgba(255, 159, 10, 0.2); color: #ffb340; }
-    .holding-icon.sp { background: rgba(48, 209, 88, 0.2); color: #30d158; }
-    .holding-icon.hk { background: rgba(255, 149, 0, 0.2); color: #ff9f0a; }
-    .holding-icon.bond { background: rgba(191, 90, 242, 0.2); color: #bf5af2; }
-    .holding-icon.cash { background: rgba(152, 152, 157, 0.2); color: #98989d; }
-    .holding-name { font-weight: 600; font-size: 0.88rem; }
-    .holding-code {
-      font-size: 0.68rem;
-      color: var(--text-secondary);
-      font-family: var(--font-number);
-    }
-    .holding-right { text-align: right; }
-    .holding-value {
-      font-weight: 600;
-      font-size: 0.9rem;
-      font-family: var(--font-number);
-    }
-    .holding-profit {
-      font-size: 0.74rem;
-      font-weight: 600;
-      font-family: var(--font-number);
-    }
-    .profit-positive { color: var(--green); }
-    .profit-negative { color: var(--red); }
-    .holding-pct {
-      font-size: 0.68rem;
-      color: var(--text-secondary);
-      font-family: var(--font-number);
-    }
-
-    .plan-table {
-      width: 100%;
-      font-size: 0.72rem;
-      border-collapse: collapse;
-      margin-bottom: 14px;
-    }
-    .plan-table th {
-      text-align: left;
-      padding: 7px 6px;
-      color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .plan-table td {
-      padding: 8px 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      font-family: var(--font-number);
-    }
-    .plan-role {
-      font-size: 0.65rem;
-      padding: 2px 7px;
-      border-radius: 6px;
-      font-weight: 600;
-      display: inline-block;
-    }
-    .plan-role.attack { background: rgba(48, 209, 88, 0.12); color: var(--green); }
-    .plan-role.assist { background: rgba(255, 149, 0, 0.12); color: #ff9f0a; }
-    .plan-role.defense { background: rgba(191, 90, 242, 0.12); color: var(--purple); }
-    .plan-role.cash { background: rgba(152, 152, 157, 0.12); color: #98989d; }
-    .plan-divider {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      margin: 12px 0;
-    }
-    .plan-rule-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 8px 0;
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-    .plan-rule-num {
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: var(--yellow);
-      min-width: 18px;
-      font-family: var(--font-number);
-    }
-
-    .analysis-card {
-      background: rgba(44, 44, 46, 0.45);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border-left: 3px solid;
-    }
-    .analysis-card.sat { border-left-color: var(--yellow); }
-    .analysis-card.sp { border-left-color: var(--green); }
-    .analysis-card.hk { border-left-color: #ff9f0a; }
-    .analysis-card.bond { border-left-color: var(--purple); }
-    .analysis-card.cash { border-left-color: #636366; }
-    .analysis-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .analysis-name { font-weight: 700; font-size: 0.85rem; }
-    .analysis-role {
-      font-size: 0.65rem;
-      padding: 3px 8px;
-      border-radius: 8px;
-      font-weight: 600;
-    }
-    .analysis-role.sat { background: rgba(255, 159, 10, 0.15); color: var(--yellow); }
-    .analysis-role.sp { background: rgba(48, 209, 88, 0.15); color: var(--green); }
-    .analysis-role.hk { background: rgba(255, 149, 0, 0.15); color: #ff9f0a; }
-    .analysis-role.bond { background: rgba(191, 90, 242, 0.15); color: var(--purple); }
-    .analysis-role.cash { background: rgba(152, 152, 157, 0.15); color: #98989d; }
-    .analysis-body {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .analysis-body strong { color: var(--text); }
-    .analysis-kpis { display: flex; gap: 16px; margin: 8px 0; flex-wrap: wrap; }
-    .analysis-kpi { font-size: 0.68rem; }
-    .analysis-kpi span { font-family: var(--font-number); font-weight: 700; }
-    .trigger-info {
-      margin-top: 10px;
-      padding: 10px 14px;
-      background: rgba(255, 69, 58, 0.06);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 69, 58, 0.15);
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .trigger-info strong { color: var(--red); }
-    .defer-info {
-      margin-top: 10px;
-      padding: 10px 14px;
-      background: rgba(10, 132, 255, 0.06);
-      border-radius: 10px;
-      border: 1px solid rgba(10, 132, 255, 0.15);
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .defer-info strong { color: var(--blue); }
-    .sentiment-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: rgba(44, 44, 46, 0.5);
-      border-radius: 14px;
-      margin-bottom: 10px;
-    }
-    .sentiment-emoji {
-      font-size: 2rem;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-    .sentiment-text { font-size: 0.8rem; font-weight: 600; }
-    .sentiment-advice { font-size: 0.68rem; color: var(--text-secondary); margin-top: 2px; }
-    .forecast-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .forecast-card {
-      background: rgba(44, 44, 46, 0.5);
-      border-radius: 14px;
-      padding: 14px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .forecast-card::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .forecast-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-    .forecast-return {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      font-family: var(--font-number);
-    }
-    .forecast-value {
-      font-size: 1.4rem;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      font-family: var(--font-number);
-    }
-    .forecast-sub { font-size: 0.62rem; color: var(--text-secondary); margin-top: 2px; }
-    .forecast-input { margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .forecast-input input {
-      width: 60px;
-      padding: 6px 8px;
-      background: rgba(44, 44, 46, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: var(--font-number);
-      font-size: 0.8rem;
-      text-align: center;
-      outline: none;
-    }
-    .forecast-input span { font-size: 0.7rem; color: var(--text-secondary); }
-    .iron-list { display: flex; flex-direction: column; gap: 10px; }
-    .iron-item {
-      display: flex;
-      gap: 10px;
-      font-size: 0.82rem;
-      align-items: baseline;
-      color: var(--text-secondary);
-    }
-    .iron-num {
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--blue);
-      min-width: 20px;
-      font-family: var(--font-number);
-    }
-    footer {
-      text-align: center;
-      font-size: 0.65rem;
-      color: var(--text-secondary);
-      padding: 12px 0;
-      opacity: 0.6;
-      position: relative;
-      z-index: 1;
-    }
-    @media (max-width: 540px) {
-      .input-grid, .kpi-grid, .forecast-grid { grid-template-columns: 1fr; }
-      .holding-card { flex-direction: column; align-items: flex-start; }
-      .holding-right { text-align: left; width: 100%; display: flex; justify-content: space-between; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五年投资实验检视表</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #1e293b, #2d3a4f);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        h2 {
+            font-size: 1.3rem;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 0;
+        }
+        .badge {
+            background: #eef2ff;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        .rule-list {
+            background: #fef9e3;
+            border-left: 4px solid #eab308;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: 12px 0;
+        }
+        .discipline {
+            background: #dcfce7;
+            border-left: 4px solid #22c55e;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .number {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 32px;
+        }
+        @media (max-width: 640px) {
+            .card { padding: 16px; }
+            th, td { font-size: 0.8rem; }
+        }
+    </style>
 </head>
 <body>
-
-  <header>
-    <div class="title">📊 持仓监视</div>
-    <div class="subtitle">⚡ 五年投资实验 · 2026.05 – 2031.04</div>
-  </header>
-
-  <!-- 投资计划总览 -->
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon blue">📋</div>
-      <div class="section-title">🗓️ 投资计划总览</div>
+<div class="container">
+    <div class="card">
+        <h1>📊 我的五年投资实验检视表</h1>
+        <p>启动时间：2026年5月 &nbsp;|&nbsp; 计划周期：5年 &nbsp;|&nbsp; 用户：1982年生</p>
+        <div class="badge">📅 下次季度检视日：2026年7月3日（周六）</div>
     </div>
 
-    <div style="font-size:0.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;">📌 主账户 · 每月定投（自动扣款）</div>
-    <table class="plan-table">
-      <thead>
-        <tr>
-          <th>💼 基金名称</th>
-          <th>🔢 代码</th>
-          <th>🎯 角色</th>
-          <th>💰 月投金额</th>
-          <th>⏰ 扣款频率</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="font-weight:600;">🌍 天弘标普500(QDII-FOF)A</td>
-          <td>007721</td>
-          <td><span class="plan-role attack">🚀 进攻核心</span></td>
-          <td>约2,000元</td>
-          <td>每个交易日100元</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;">🏗️ 摩根港股红利指数A</td>
-          <td>005051</td>
-          <td><span class="plan-role assist">⚓ 价值辅助</span></td>
-          <td>800元</td>
-          <td>每周三200元</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;">🛡️ 宝盈盈润纯债A</td>
-          <td>006242</td>
-          <td><span class="plan-role defense">🏰 防守压舱石</span></td>
-          <td>900元</td>
-          <td>每月15日</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;">💵 余额宝（计划内）</td>
-          <td>—</td>
-          <td><span class="plan-role cash">🪣 灵活备用</span></td>
-          <td>300元</td>
-          <td>每月1日手动转入</td>
-        </tr>
-        <tr style="font-weight:700;border-top:1px solid rgba(255,255,255,0.1);">
-          <td>📊 合计</td>
-          <td></td>
-          <td></td>
-          <td>约4,000元/月</td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="plan-divider"></div>
-    <div style="font-size:0.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;">💸 闲钱处理规则（每月金额不定）</div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❶</span>
-      <span>每月闲钱（1,000-4,000元不等）→ <strong>全部手动转入余额宝</strong></span>
-    </div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❷</span>
-      <span>季度检视日 → 余额宝留 <strong>5,000-10,000元</strong> 作应急备用</span>
-    </div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❸</span>
-      <span>超出部分 → <strong>一次性买入006242纯债</strong></span>
+    <!-- 核心纪律 -->
+    <div class="card">
+        <h2>🔒 核心纪律（雷打不动）</h2>
+        <div class="discipline">
+            ✅ 只在季度检视日（1/4/7/10月第一个周六）查看账户、做决策<br>
+            ✅ 其余时间绝对不看账户、不手动操作<br>
+            ✅ 已打破过去频繁清仓模式，坚持纪律第2个月
+        </div>
     </div>
 
-    <div class="plan-divider"></div>
-    <div style="font-size:0.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;">🛰️ 卫星仓（保留，不新增定投）</div>
-    <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:6px;">
-      🔵 华夏全球科技先锋 · 🔵 广发全球精选 · 🔵 易方达全球成长A/C
+    <!-- 持仓总览 -->
+    <div class="card">
+        <h2>💰 最新持仓（截至2026年6月5日）</h2>
+        <div style="background:#f1f5f9; padding:12px; border-radius:16px; margin-bottom:16px;">
+            <strong>总资产：¥81,759</strong> &nbsp; 月增量 ≈ ¥5,000~7,000
+        </div>
+        <table>
+            <thead>
+                <tr><th>账户类型</th><th>基金/产品</th><th>市值（元）</th><th>定投规则</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>🚀 主攻</td><td>天弘标普500 (007721)</td><td class="number">1,718</td><td>每日100元</td></tr>
+                <tr><td>⚖️ 平衡</td><td>摩根港股红利A (005051)</td><td class="number">439</td><td>每周三90元</td></tr>
+                <tr><td>🛡️ 防守</td><td>宝盈盈润纯债A (006242)</td><td class="number">1,648</td><td>每月15日640元</td></tr>
+                <tr><td>🏦 现金</td><td>余额宝</td><td class="number">33,118</td><td>工资结余存入</td></tr>
+                <tr style="background:#fef9c3;"><td>🛰️ 卫星仓</td><td>华夏全球科技先锋</td><td class="number">22,369</td><td rowspan="3">不新增定投</td></tr>
+                <tr style="background:#fef9c3;"><td>🛰️ 卫星仓</td><td>广发全球精选</td><td class="number">20,702</td></tr>
+                <tr style="background:#fef9c3;"><td>🛰️ 卫星仓</td><td>易方达全球成长A/C</td><td class="number">~1,765</td></tr>
+                <tr><td colspan="2"><strong>卫星仓合计</strong></td><td class="number"><strong>44,836</strong></td><td>占总资产 54.8%</td></tr>
+            </tbody>
+        </table>
+        <div class="badge" style="background:#e6f7e6;">⚠️ 卫星仓占比 >60% 需强制赎回超出部分转纯债</div>
     </div>
 
-    <div class="plan-divider"></div>
-    <div style="font-size:0.7rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:8px;">📜 卖出规则</div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❶</span>
-      <span>席勒CAPE > 40 → 季度检视日卖出标普500市值的1/3，转入纯债</span>
+    <!-- 卖出规则 -->
+    <div class="card">
+        <h2>📜 卖出规则（触发即执行）</h2>
+        <div class="rule-list">
+            <strong>① 席勒CAPE > 40</strong><br>
+            季度检视日卖出天弘标普500的 1/3 → 转入宝盈盈润纯债
+        </div>
+        <div class="rule-list">
+            <strong>② 卫星仓单只基金回撤 >15%</strong><br>
+            卖出该基金利润的50% → 转入纯债
+        </div>
+        <div class="rule-list">
+            <strong>③ 卫星仓总占比 >60%</strong><br>
+            强制赎回超出部分的金额 → 全部转入纯债
+        </div>
+        <p style="font-size:0.85rem; margin-top:12px;">📌 季度检视日：1月、4月、7月、10月的第一个周六</p>
     </div>
-    <div class="plan-rule-item" style="padding-left:26px;">
-      <span style="font-size:0.65rem;color:var(--blue);">⚡ 卖出金额<1,000元时暂不执行，累积到下次检视日</span>
-    </div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❷</span>
-      <span>卫星仓累计盈利从最高点回撤 > 15% → 卖出利润的50%，转入纯债（金额再小也执行）</span>
-    </div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❸</span>
-      <span>卫星仓占总资产 > 60% → 强制赎回超出部分，转入纯债</span>
-    </div>
-    <div class="plan-rule-item">
-      <span class="plan-rule-num">❹</span>
-      <span>余额宝占总资产 > 50% → 季度检视日超出部分转入纯债</span>
-    </div>
-  </div>
 
-  <div class="card">
-    <div class="alert-row">
-      <span style="display:flex;align-items:center;gap:6px;font-weight:600;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);"></span>
-        🗓️ 下次季度检视日：<span id="nextReviewDisplay">--</span>
-      </span>
-      <span class="alert-chip">📅 建议检视日做决策</span>
+    <!-- 最坏情况应对 -->
+    <div class="card">
+        <h2>⚠️ 最坏情况应对清单</h2>
+        <ul>
+            <li>美股基金限购 → 按计划改用替代基金或暂停申购，绝不追高溢价</li>
+            <li>卫星仓暴跌 → 不恐慌清仓，检视日按规则②操作</li>
+            <li>账户无法登录 → 联系基金公司，保持持仓不动直到恢复</li>
+            <li>市场极端狂热（CAPE>40）→ 严格执行减仓标普500的1/3</li>
+        </ul>
+        <p style="font-size:0.8rem;">已制定详细操作清单，避免冲动决策。</p>
     </div>
-    <div class="sentiment-bar" style="margin-top:10px;">
-      <div class="sentiment-emoji" id="sentimentEmoji">🟠</div>
-      <div>
-        <div class="sentiment-text" id="sentimentText">🌡️ 市场明显高估 · 警戒区间</div>
-        <div class="sentiment-advice" id="sentimentAdvice">💡 继续定投，不追加，等待检视日</div>
-      </div>
+
+    <!-- 行为反馈 -->
+    <div class="card">
+        <h2>🧠 行为记录</h2>
+        <ul>
+            <li>✅ 2026.6.2 忍住“标普500涨太慢想追加”的冲动</li>
+            <li>✅ 2026.6.2 科技股大幅波动，没有提前卖出，主动分析原因</li>
+            <li>✅ 2026.6.4 卫星仓单日大涨（华夏+1228元），没有落袋为安，总资产突破8.1万</li>
+            <li>✅ 已打破以往频繁清仓的坏模式</li>
+        </ul>
+        <div class="discipline" style="margin-top:8px;">
+            “遵守纪律，让时间成为朋友”
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon blue">📝</div>
-      <div class="section-title">✏️ 数据更新</div>
+    <div class="footer">
+        五年投资实验 · 仅供个人检视 · 每季度更新数据<br>
+        网站更新于 2026年6月
     </div>
-    <div class="input-grid">
-      <div class="input-item"><label>📈 席勒CAPE</label><input id="cape" type="number" step="0.01" value="42.0"></div>
-      <div class="input-item"><label>💰 总资产 (元)</label><input id="totalAssets" type="number" step="1" value="81196.74"></div>
-      <div class="input-item"><label>🌍 标普500 市值</label><input id="sp500Value" type="number" step="1" value="1729.06"></div>
-      <div class="input-item"><label>🏗️ 港股红利 市值</label><input id="hkValue" type="number" step="1" value="442.44"></div>
-      <div class="input-item"><label>🛡️ 纯债 市值</label><input id="bondValue" type="number" step="1" value="1647.74"></div>
-      <div class="input-item"><label>💵 余额宝</label><input id="yuebao" type="number" step="1" value="33117.93"></div>
-      <div class="input-item"><label>🛰️ 卫星仓总市值</label><input id="satelliteValue" type="number" step="1" value="44259.57"></div>
-      <div class="input-item"><label>📊 卫星仓累计盈利</label><input id="satelliteProfit" type="number" step="1" value="13893.13"></div>
-      <div class="input-item"><label>🏔️ 卫星仓历史最高盈利</label><input id="satelliteProfitHigh" type="number" step="1" value="13893.13"></div>
-    </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);">
-      <div style="font-size:0.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:10px;">🔍 各基金详细数据</div>
-      <div class="input-grid">
-        <div class="input-item"><label>🔵 华夏全球科技先锋 · 市值</label><input id="huaxiaValue" type="number" step="1" value="21990.11"></div>
-        <div class="input-item"><label>🔵 华夏 · 累计盈利</label><input id="huaxiaProfit" type="number" step="1" value="7423.67"></div>
-        <div class="input-item"><label>🔵 广发全球精选 · 市值</label><input id="guangfaValue" type="number" step="1" value="20543.93"></div>
-        <div class="input-item"><label>🔵 广发 · 累计盈利</label><input id="guangfaProfit" type="number" step="1" value="6043.93"></div>
-        <div class="input-item"><label>🔵 易方达全球A · 市值</label><input id="yfdAValue" type="number" step="1" value="862.42"></div>
-        <div class="input-item"><label>🔵 易方达A · 累计盈利</label><input id="yfdAProfit" type="number" step="1" value="212.42"></div>
-        <div class="input-item"><label>🔵 易方达全球C · 市值</label><input id="yfdCValue" type="number" step="1" value="863.11"></div>
-        <div class="input-item"><label>🔵 易方达C · 累计盈利</label><input id="yfdCProfit" type="number" step="1" value="213.11"></div>
-      </div>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="refreshAll()">⚡ 刷新分析</button>
-      <button class="btn" onclick="saveData()">💾 保存</button>
-      <button class="btn" onclick="loadData()">📂 加载存档</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon yellow">🔍</div>
-      <div class="section-title">📋 持仓深度分析</div>
-    </div>
-    <div id="analysisList"></div>
-  </div>
-
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon green">⚖️</div>
-      <div class="section-title">✅ 规则状态</div>
-    </div>
-    <div id="ruleList"></div>
-  </div>
-
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon purple">📊</div>
-      <div class="section-title">🎨 持仓结构</div>
-    </div>
-    <div class="chart-wrap">
-      <canvas id="allocationChart" width="190" height="190"></canvas>
-    </div>
-    <div class="legend" id="chartLegend"></div>
-    <div class="kpi-grid" style="margin-top:14px;">
-      <div class="kpi">
-        <div class="kpi-label">🌍 海外风险暴露</div>
-        <div class="kpi-value" id="overseasExposure" style="color:var(--yellow);">--%</div>
-        <div class="kpi-bar"><div class="kpi-fill" id="overseasBar" style="background:var(--yellow);"></div></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">🛡️ 防守资产占比</div>
-        <div class="kpi-value" id="defenseRatio" style="color:var(--green);">--%</div>
-        <div class="kpi-bar"><div class="kpi-fill" id="defenseBar" style="background:var(--green);"></div></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">📉 卫星仓盈利回撤</div>
-        <div class="kpi-value" id="drawdownDisplay" style="color:var(--red);">0.0%</div>
-        <div class="kpi-bar"><div class="kpi-fill" id="drawdownBar" style="background:var(--red);"></div></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">💵 现金/纯债比例</div>
-        <div class="kpi-value" id="cashBondRatio" style="color:var(--cyan);">--%</div>
-        <div class="kpi-bar"><div class="kpi-fill" id="cashBar" style="background:var(--cyan);"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon yellow">🔮</div>
-      <div class="section-title">📈 五年收益预测</div>
-    </div>
-    <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:8px;">
-      💰 基于当前总资产 <strong id="forecastBase" style="color:var(--text);">--</strong> 元 + 月投入 <input id="monthlyAdd" type="number" step="100" value="5000" style="width:70px;padding:4px 6px;background:rgba(44,44,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--text);font-family:var(--font-number);font-size:0.72rem;text-align:center;"> 元 × 60个月
-    </div>
-    <div class="forecast-grid">
-      <div class="forecast-card" style="border:1px solid rgba(255,69,58,0.2);">
-        <div class="forecast-label">📉 保守</div>
-        <div class="forecast-return" style="color:var(--red);">📉 年化 <input id="retConservative" type="number" step="0.5" value="3" style="width:45px;padding:4px;background:rgba(44,44,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--text);font-family:var(--font-number);font-size:0.7rem;text-align:center;">%</div>
-        <div class="forecast-value" id="fvConservative" style="color:var(--red);">--</div>
-        <div class="forecast-sub">🏁 5年后总资产</div>
-      </div>
-      <div class="forecast-card" style="border:1px solid rgba(255,159,10,0.3);">
-        <div class="forecast-label">📊 中性</div>
-        <div class="forecast-return" style="color:var(--yellow);">📊 年化 <input id="retNeutral" type="number" step="0.5" value="5.5" style="width:45px;padding:4px;background:rgba(44,44,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--text);font-family:var(--font-number);font-size:0.7rem;text-align:center;">%</div>
-        <div class="forecast-value" id="fvNeutral" style="color:var(--yellow);">--</div>
-        <div class="forecast-sub">🏁 5年后总资产</div>
-      </div>
-      <div class="forecast-card" style="border:1px solid rgba(48,209,88,0.2);">
-        <div class="forecast-label">📈 乐观</div>
-        <div class="forecast-return" style="color:var(--green);">📈 年化 <input id="retOptimistic" type="number" step="0.5" value="8" style="width:45px;padding:4px;background:rgba(44,44,46,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--text);font-family:var(--font-number);font-size:0.7rem;text-align:center;">%</div>
-        <div class="forecast-value" id="fvOptimistic" style="color:var(--green);">--</div>
-        <div class="forecast-sub">🏁 5年后总资产</div>
-      </div>
-    </div>
-    <div style="margin-top:10px;font-size:0.62rem;color:var(--text-secondary);text-align:center;">⚠️ 预测基于复利公式，仅供参考。</div>
-  </div>
-
-  <div class="card">
-    <div class="section-header">
-      <div class="section-icon blue">🔒</div>
-      <div class="section-title">📜 三条铁律</div>
-    </div>
-    <div class="iron-list">
-      <div class="iron-item"><span class="iron-num">1️⃣</span> 🏛️ 核心基金持有至少24个月，不以任何理由清仓</div>
-      <div class="iron-item"><span class="iron-num">2️⃣</span> 🛰️ 卫星仓不新增任何定投，只按卖出条件管理</div>
-      <div class="iron-item"><span class="iron-num">3️⃣</span> ⏳ 季度检视日做决策，其余时间尽量少操作</div>
-    </div>
-  </div>
-
-  <footer>⚡ 五年投资实验 · 持仓监视 · 纪律驱动 ⚡</footer>
-
-  <script>
-    (function() {
-      function getFirstSaturday(year, month) {
-        const d = new Date(year, month - 1, 1);
-        d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7);
-        d.setHours(10, 0, 0, 0);
-        return d;
-      }
-      function getNextReviewDate() {
-        const now = new Date();
-        const months = [1, 4, 7, 10];
-        let cs = [];
-        for (let y = now.getFullYear(); y <= now.getFullYear() + 1; y++) {
-          for (const m of months) {
-            const d = getFirstSaturday(y, m);
-            if (d > now) cs.push(d);
-          }
-        }
-        cs.sort((a, b) => a - b);
-        return cs[0] || null;
-      }
-      function formatCN(d) {
-        const w = ['日', '一', '二', '三', '四', '五', '六'];
-        return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（周${w[d.getDay()]}）`;
-      }
-      const next = getNextReviewDate();
-      if (next) document.getElementById('nextReviewDisplay').textContent = formatCN(next);
-
-      function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
-
-      function renderSentiment(cape) {
-        const emojiEl = document.getElementById('sentimentEmoji');
-        const textEl = document.getElementById('sentimentText');
-        const adviceEl = document.getElementById('sentimentAdvice');
-        if (cape > 44) {
-          emojiEl.textContent = '🔴'; textEl.textContent = '🌡️ 市场极度高估 · 泡沫区间';
-          adviceEl.textContent = '💡 检视日务必执行CAPE卖出规则';
-        } else if (cape > 40) {
-          emojiEl.textContent = '🟠'; textEl.textContent = '🌡️ 市场明显高估 · 警戒区间';
-          adviceEl.textContent = '💡 继续定投，不追加，等待检视日';
-        } else if (cape > 28) {
-          emojiEl.textContent = '🟡'; textEl.textContent = '🌡️ 市场中性偏高';
-          adviceEl.textContent = '💡 按计划执行定投，保持节奏';
-        } else if (cape > 18) {
-          emojiEl.textContent = '🟢'; textEl.textContent = '🌡️ 市场估值合理';
-          adviceEl.textContent = '💡 安心定投，无需调整';
-        } else {
-          emojiEl.textContent = '🟢'; textEl.textContent = '🌡️ 市场低估 · 机会区间';
-          adviceEl.textContent = '💡 可考虑在检视日讨论适当加仓';
-        }
-      }
-
-      function read() {
-        return {
-          cape: g('cape'), totalAssets: g('totalAssets') || 1,
-          sp500Value: g('sp500Value'), hkValue: g('hkValue'),
-          bondValue: g('bondValue'), yuebao: g('yuebao'),
-          satelliteValue: g('satelliteValue'), satelliteProfit: g('satelliteProfit'),
-          satelliteProfitHigh: g('satelliteProfitHigh') || g('satelliteProfit'),
-          huaxiaValue: g('huaxiaValue'), huaxiaProfit: g('huaxiaProfit'),
-          guangfaValue: g('guangfaValue'), guangfaProfit: g('guangfaProfit'),
-          yfdAValue: g('yfdAValue'), yfdAProfit: g('yfdAProfit'),
-          yfdCValue: g('yfdCValue'), yfdCProfit: g('yfdCProfit'),
-        };
-      }
-      function compute(d) {
-        const satPct = (d.satelliteValue / d.totalAssets) * 100;
-        const ybPct = (d.yuebao / d.totalAssets) * 100;
-        const dd = d.satelliteProfitHigh > 0 ? ((d.satelliteProfitHigh - d.satelliteProfit) / d.satelliteProfitHigh) * 100 : 0;
-        const r1Amt = d.cape > 40 && d.sp500Value > 0 ? Math.round(d.sp500Value / 3) : 0;
-        const r1Deferred = r1Amt > 0 && r1Amt < 1000;
-        return { cape: d.cape, satPct, ybPct, dd,
-          r1: d.cape > 40, r1Amt, r1Deferred,
-          r2: dd > 15, r2Amt: dd > 15 ? Math.round(d.satelliteProfit * 0.5) : 0,
-          r3: satPct > 60, r3Amt: satPct > 60 ? Math.round(d.satelliteValue - d.totalAssets * 0.6) : 0,
-          r4: ybPct > 50, r4Amt: ybPct > 50 ? Math.round(d.yuebao - d.totalAssets * 0.5) : 0,
-        };
-      }
-
-      function renderAnalysis(d, res) {
-        const total = d.totalAssets;
-        const huaxiaTriggerLine = Math.round(d.huaxiaProfit * 0.85);
-        const huaxiaSellAmount = Math.round(d.huaxiaProfit * 0.5);
-        const guangfaTriggerLine = Math.round(d.guangfaProfit * 0.85);
-        const guangfaSellAmount = Math.round(d.guangfaProfit * 0.5);
-        const yfdTriggerLine = Math.round((d.yfdAProfit + d.yfdCProfit) * 0.85);
-        const yfdSellAmount = Math.round((d.yfdAProfit + d.yfdCProfit) * 0.5);
-
-        const items = [{
-          cls: 'sat', name: '🔵 华夏全球科技先锋混合(QDII)A', role: '卫星仓 · AI算力核心',
-          value: d.huaxiaValue, profit: d.huaxiaProfit, pct: ((d.huaxiaValue / total) * 100).toFixed(1),
-          analysis: d.huaxiaProfit > 6000 ? `📈 累计盈利 <strong>¥${d.huaxiaProfit.toLocaleString()}</strong>，持有收益率超 <strong>50%</strong>，是账户中表现最强的单一资产。该基金重仓全球AI算力基础设施，近期受AI主线驱动持续创新高。当前处于<strong>利润奔跑期</strong>。` : `卫星仓核心持仓，重仓AI算力赛道。当前盈利尚可，继续持有，不新增定投。`,
-          triggerLine: huaxiaTriggerLine, sellAmount: huaxiaSellAmount,
-          triggerText: `📉 若累计盈利降至 <strong>¥${huaxiaTriggerLine.toLocaleString()}</strong> 以下（即从当前最高点回撤超15%），需卖出利润的50%，即 <strong>¥${huaxiaSellAmount.toLocaleString()}</strong>，转入纯债。`,
-          action: '👉 继续持有，不新增。触发回撤>15%则执行止盈。', cls2: 'sat'
-        }, {
-          cls: 'sat', name: '🔵 广发全球精选股票(QDII)A', role: '卫星仓 · 全球科技成长',
-          value: d.guangfaValue, profit: d.guangfaProfit, pct: ((d.guangfaValue / total) * 100).toFixed(1),
-          analysis: d.guangfaProfit > 5000 ? `📈 累计盈利 <strong>¥${d.guangfaProfit.toLocaleString()}</strong>，持有收益率超 <strong>40%</strong>。与华夏形成AI赛道双核心，底层持仓高度重叠。` : `卫星仓辅助持仓，与华夏共同构成科技成长敞口。继续持有，不新增。`,
-          triggerLine: guangfaTriggerLine, sellAmount: guangfaSellAmount,
-          triggerText: `📉 若累计盈利降至 <strong>¥${guangfaTriggerLine.toLocaleString()}</strong> 以下（即从当前最高点回撤超15%），需卖出利润的50%，即 <strong>¥${guangfaSellAmount.toLocaleString()}</strong>，转入纯债。`,
-          action: '👉 继续持有，不新增。触发回撤>15%则执行止盈。', cls2: 'sat'
-        }, {
-          cls: 'sat', name: '🔵 易方达全球成长精选A/C', role: '卫星仓 · 补充敞口',
-          value: d.yfdAValue + d.yfdCValue, profit: d.yfdAProfit + d.yfdCProfit,
-          pct: (((d.yfdAValue + d.yfdCValue) / total) * 100).toFixed(1),
-          analysis: `📋 合计市值约 <strong>¥${(d.yfdAValue + d.yfdCValue).toLocaleString()}</strong>，占比较小（约2%）。郑希的主动管理能力在QDII圈内属稀缺资源，但因申购已限购50元/天，清仓后将难以重新建仓。建议<strong>保留观察</strong>。`,
-          triggerLine: yfdTriggerLine, sellAmount: yfdSellAmount,
-          triggerText: `📉 若累计盈利降至 <strong>¥${yfdTriggerLine.toLocaleString()}</strong> 以下，需卖出利润的50%，即 <strong>¥${yfdSellAmount.toLocaleString()}</strong>，转入纯债。`,
-          action: '👉 保留观察，不清仓。不新增定投。', cls2: 'sat'
-        }, {
-          cls: 'sp', name: '🌍 天弘标普500(QDII-FOF)A', role: '主账户 · 全球进攻核心',
-          value: d.sp500Value, profit: d.sp500Value - 1700, pct: ((d.sp500Value / total) * 100).toFixed(1),
-          analysis: res.r1 ?
-            (res.r1Deferred ?
-              `📍 当前市值约 <strong>¥${d.sp500Value.toLocaleString()}</strong>。⚠️ 席勒CAPE已超40，触发高估卖出规则，但卖出金额仅 <strong>¥${res.r1Amt.toLocaleString()}</strong>（不足1,000元），按补充规则<strong>暂不执行</strong>，累积到下次季度检视日再处理。` :
-              `📍 当前市值约 <strong>¥${d.sp500Value.toLocaleString()}</strong>。⚠️ 席勒CAPE已超40，触发高估卖出规则。<strong>在季度检视日</strong>，需卖出当前市值的1/3（约¥${res.r1Amt.toLocaleString()}），转入纯债。`) :
-            `📍 当前市值约 <strong>¥${d.sp500Value.toLocaleString()}</strong>，每日100元定投持续累积。作为退休计划的核心进攻引擎，标普500覆盖全球500家最优质企业，长期年化回报约8%-10%。当前仓位尚小，继续坚持定投。`,
-          triggerLine: 0, sellAmount: res.r1Deferred ? 0 : res.r1Amt,
-          triggerText: res.r1 && !res.r1Deferred ? `📅 季度检视日需卖出 <strong>¥${res.r1Amt.toLocaleString()}</strong>（当前市值的1/3），转入纯债。` : '',
-          deferText: res.r1Deferred ? `💡 卖出金额不足1,000元，暂不执行，累积到下次检视日再处理。` : '',
-          action: res.r1Deferred ? '👉 触发卖出但金额不足1,000元，累积到下次检视日。继续每日100元定投。' : (res.r1 ? `👉 季度检视日卖出1/3（约¥${res.r1Amt.toLocaleString()}）→ 转入纯债` : '👉 继续每日100元定投，不追加不减少。'),
-          cls2: 'sp', deferred: res.r1Deferred
-        }, {
-          cls: 'hk', name: '🏗️ 摩根港股红利指数A', role: '主账户 · 港股价值辅助',
-          value: d.hkValue, profit: d.hkValue - 450, pct: ((d.hkValue / total) * 100).toFixed(1),
-          analysis: d.hkValue < 600 ? `🐣 当前市值仅 <strong>¥${d.hkValue.toLocaleString()}</strong>，处于定投极早期。该基金跟踪港股通低波红利指数，成分股为银行、能源等高股息蓝筹，与科技股形成对冲。当前微亏属正常波动，<strong>坚持每周三200元定投</strong>，24个月内不评估其表现。` : `港股红利策略与科技股形成天然对冲。当前市值正常积累中，继续每周三定投。`,
-          triggerLine: 0, sellAmount: 0, triggerText: '',
-          action: '👉 坚持每周三200元定投，24个月内不换仓。', cls2: 'hk'
-        }, {
-          cls: 'bond', name: '🛡️ 宝盈盈润纯债A', role: '主账户 · 防守压舱石',
-          value: d.bondValue, profit: d.bondValue - 1640, pct: ((d.bondValue / total) * 100).toFixed(1),
-          analysis: `🛡️ 当前市值 <strong>¥${d.bondValue.toLocaleString()}</strong>，成立以来最大回撤仅约 <strong>-0.31%</strong>。纯债在组合中的角色不是赚钱，而是<strong>在市场暴跌时提供唯一亮着的绿灯</strong>，防止你因恐慌而清仓。每月15日900元定投雷打不动。`,
-          triggerLine: 0, sellAmount: 0, triggerText: '',
-          action: '👉 每月15日900元定投，永不调整。', cls2: 'bond'
-        }, {
-          cls: 'cash', name: '💵 余额宝', role: '主账户 · 灵活备用',
-          value: d.yuebao, profit: 262.18, pct: ((d.yuebao / total) * 100).toFixed(1),
-          analysis: res.r4 ? `⚠️ 当前余额宝占比 <strong>${res.ybPct.toFixed(1)}%</strong>，已超过50%警戒线。在季度检视日，需将超出部分约 <strong>¥${res.r4Amt.toLocaleString()}</strong> 转入纯债。` : `🪣 当前余额宝占比 <strong>${res.ybPct.toFixed(1)}%</strong>，未超过50%警戒线。作为组合的"弹药库"，余额宝提供随时可用的流动性，年化约2%。闲钱先进余额宝，季度检视日再决定是否转入纯债。`,
-          triggerLine: 0, sellAmount: res.r4Amt,
-          triggerText: res.r4 ? `⚠️ 季度检视日需将超出部分约 <strong>¥${res.r4Amt.toLocaleString()}</strong> 转入纯债。` : '',
-          action: res.r4 ? `👉 季度检视日将超出部分约¥${res.r4Amt.toLocaleString()}转入纯债` : '👉 闲钱先进余额宝，季度检视日再处理。', cls2: 'cash'
-        }];
-
-        document.getElementById('analysisList').innerHTML = items.map(item => `
-          <div class="analysis-card ${item.cls2}">
-            <div class="analysis-header"><span class="analysis-name">${item.name}</span><span class="analysis-role ${item.cls2}">${item.role}</span></div>
-            <div class="analysis-kpis">
-              <div class="analysis-kpi">💰 市值：<span>¥${item.value.toLocaleString()}</span></div>
-              <div class="analysis-kpi">📊 占比：<span>${item.pct}%</span></div>
-              <div class="analysis-kpi">📈 盈亏：<span style="color:${item.profit >= 0 ? 'var(--green)' : 'var(--red)'}">${item.profit >= 0 ? '+' : ''}¥${item.profit.toLocaleString()}</span></div>
-            </div>
-            <div class="analysis-body">${item.analysis}</div>
-            ${item.triggerText ? `<div class="trigger-info">📉 止盈触发线：${item.triggerText}</div>` : ''}
-            ${item.deferText ? `<div class="defer-info">💡 小额豁免：${item.deferText}</div>` : ''}
-            <div style="margin-top:8px;font-size:0.7rem;font-weight:700;color:var(--blue);">${item.action}</div>
-          </div>`).join('');
-      }
-
-      function renderRules(res) {
-        const r1Desc = res.r1 ?
-          (res.r1Deferred ?
-            `⚠️ 触发（卖出金额约¥${res.r1Amt.toLocaleString()}，不足1,000元，暂缓）` :
-            `卖出007721市值1/3 ≈ ${res.r1Amt.toLocaleString()}元 → 纯债`) :
-          '✅ 未触发，继续定投';
-        const items = [
-          { name: '📜 标普500极端高估', trig: res.r1, deferred: res.r1Deferred, detail: r1Desc, safe: '✅ 未触发，继续定投' },
-          { name: '📜 卫星仓回撤止盈 (>15%)', trig: res.r2, detail: `赎回利润50% ≈ ${res.r2Amt.toLocaleString()}元 → 纯债`, safe: `✅ 回撤 ${res.dd.toFixed(1)}%，未触发` },
-          { name: '📜 卫星仓强制降仓 (>60%)', trig: res.r3, detail: `赎回超出部分 ≈ ${res.r3Amt.toLocaleString()}元 → 纯债`, safe: `✅ 占比 ${res.satPct.toFixed(1)}%，未触发` },
-          { name: '📜 余额宝再平衡 (>50%)', trig: res.r4, detail: `超出部分 ≈ ${res.r4Amt.toLocaleString()}元 → 纯债`, safe: `✅ 占比 ${res.ybPct.toFixed(1)}%，未触发` },
-        ];
-        document.getElementById('ruleList').innerHTML = items.map(r => {
-          const badgeClass = r.trig ? (r.deferred ? 'badge-info' : 'badge-warn') : 'badge-ok';
-          const badgeText = r.trig ? (r.deferred ? '⏸️ 暂缓' : '⚠️ 触发') : '✅ 正常';
-          return `<div class="rule-item"><div><div class="rule-name">${r.name}</div><div class="rule-desc">${r.trig ? r.detail : r.safe}</div></div><span class="rule-badge ${badgeClass}">${badgeText}</span></div>`;
-        }).join('');
-      }
-
-      let chartInst = null;
-      function renderChart(d) {
-        const ctx = document.getElementById('allocationChart').getContext('2d');
-        if (chartInst) chartInst.destroy();
-        const labels = ['🛰️ 卫星仓', '🌍 标普500', '🏗️ 港股红利', '🛡️ 纯债', '💵 余额宝'];
-        const values = [d.satelliteValue, d.sp500Value, d.hkValue, d.bondValue, d.yuebao];
-        const colors = ['#ff9f0a', '#30d158', '#ff9f0a', '#bf5af2', '#636366'];
-        chartInst = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#1c1c1e', borderWidth: 2 }] }, options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${((c.raw / d.totalAssets)*100).toFixed(1)}%` } } } } });
-        document.getElementById('chartLegend').innerHTML = labels.map((l, i) => `<span><span class="legend-dot" style="background:${colors[i]};"></span>${l} ${((values[i]/d.totalAssets)*100).toFixed(1)}%</span>`).join('');
-      }
-      function renderKPIs(d, res) {
-        const ov = (((d.satelliteValue + d.sp500Value + d.hkValue) / d.totalAssets) * 100).toFixed(1);
-        const df = (((d.bondValue + d.yuebao) / d.totalAssets) * 100).toFixed(1);
-        const cb = ((d.yuebao / (d.bondValue + d.yuebao || 1)) * 100).toFixed(1);
-        document.getElementById('overseasExposure').textContent = ov + '%';
-        document.getElementById('defenseRatio').textContent = df + '%';
-        document.getElementById('drawdownDisplay').textContent = res.dd.toFixed(1) + '%';
-        document.getElementById('cashBondRatio').textContent = cb + '% (现金)';
-        document.getElementById('overseasBar').style.width = ov + '%';
-        document.getElementById('defenseBar').style.width = df + '%';
-        document.getElementById('drawdownBar').style.width = Math.min(res.dd, 100) + '%';
-        document.getElementById('cashBar').style.width = cb + '%';
-      }
-      function renderForecast() {
-        const P = g('totalAssets') || 81197;
-        const monthlyAdd = g('monthlyAdd') || 5000;
-        const n = 60;
-        const rCons = (g('retConservative') || 3) / 100 / 12;
-        const rNeut = (g('retNeutral') || 5.5) / 100 / 12;
-        const rOpt = (g('retOptimistic') || 8) / 100 / 12;
-        function fv(principal, addition, rate, periods) {
-          if (rate === 0) return principal + addition * periods;
-          let total = principal * Math.pow(1 + rate, periods);
-          total += addition * ((Math.pow(1 + rate, periods) - 1) / rate);
-          return Math.round(total);
-        }
-        document.getElementById('forecastBase').textContent = P.toLocaleString();
-        document.getElementById('fvConservative').textContent = '¥' + fv(P, monthlyAdd, rCons, n).toLocaleString();
-        document.getElementById('fvNeutral').textContent = '¥' + fv(P, monthlyAdd, rNeut, n).toLocaleString();
-        document.getElementById('fvOptimistic').textContent = '¥' + fv(P, monthlyAdd, rOpt, n).toLocaleString();
-      }
-
-      function refreshAll() {
-        const d = read(); const res = compute(d);
-        renderSentiment(d.cape); renderAnalysis(d, res); renderRules(res);
-        renderChart(d); renderKPIs(d, res); renderForecast();
-      }
-      ['monthlyAdd', 'retConservative', 'retNeutral', 'retOptimistic'].forEach(id => {
-        document.getElementById(id).addEventListener('input', renderForecast);
-      });
-
-      function saveData() {
-        const keys = ['cape','totalAssets','sp500Value','hkValue','bondValue','yuebao','satelliteValue','satelliteProfit','satelliteProfitHigh','huaxiaValue','huaxiaProfit','guangfaValue','guangfaProfit','yfdAValue','yfdAProfit','yfdCValue','yfdCProfit','monthlyAdd','retConservative','retNeutral','retOptimistic'];
-        const obj = {};
-        keys.forEach(k => { const el = document.getElementById(k); if (el) obj[k] = el.value; });
-        localStorage.setItem('fiveYearPlanData', JSON.stringify(obj));
-        alert('✅ 数据已保存');
-      }
-      function loadData() {
-        const raw = localStorage.getItem('fiveYearPlanData');
-        if (!raw) return alert('📭 无存档');
-        const data = JSON.parse(raw);
-        Object.keys(data).forEach(k => { const el = document.getElementById(k); if (el) el.value = data[k]; });
-        refreshAll();
-      }
-      refreshAll();
-      setInterval(() => { const n = getNextReviewDate(); if (n) document.getElementById('nextReviewDisplay').textContent = formatCN(n); }, 3600000);
-    })();
-  </script>
+</div>
 </body>
 </html>
