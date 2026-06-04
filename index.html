@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      /* 修改后的颜色：深空渐变背景，更现代 */
       --bg: linear-gradient(135deg, #0b0b10 0%, #14141e 100%);
       --card-bg: rgba(28, 28, 35, 0.85);
       --card-border: rgba(255, 255, 255, 0.08);
@@ -20,30 +19,19 @@
       --purple: #bf5af2;
       --cyan: #64d2ff;
       --shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-      /* 圆角更大 */
       --radius: 28px;
       --font-number: 'SF Mono', 'JetBrains Mono', monospace;
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', system-ui, 'Segoe UI', sans-serif;
+      font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
       padding: 20px 16px 40px;
       max-width: 860px;
       margin: 0 auto;
       -webkit-font-smoothing: antialiased;
-      position: relative;
     }
-
-    /* 卡片样式更新 */
     .card {
       background: var(--card-bg);
       backdrop-filter: blur(28px);
@@ -54,31 +42,12 @@
       box-shadow: var(--shadow);
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    /* 图片样式 */
-    .header-img {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .header-img img {
-      max-width: 100%;
-      border-radius: 28px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-
-    /* 其他原有样式微调 */
+    .card:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
     .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .section-icon {
-      width: 32px; height: 32px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1);
-    }
+    .section-icon { width: 32px; height: 32px; border-radius: 12px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
     .section-title { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
     .plan-table { width: 100%; font-size: 0.72rem; border-collapse: collapse; margin-bottom: 14px; }
-    .plan-table th { text-align: left; padding: 8px 6px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .plan-table th { text-align: left; padding: 8px 6px; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.1); }
     .plan-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: var(--font-number); }
     .plan-role { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; }
     .plan-role.attack { background: rgba(48,209,88,0.15); color: var(--green); }
@@ -131,58 +100,50 @@
     .iron-item { display: flex; gap: 10px; align-items: baseline; font-size: 0.8rem; }
     .iron-num { font-weight: 700; font-size: 1rem; color: var(--blue); min-width: 24px; }
     footer { text-align: center; font-size: 0.65rem; color: var(--text-secondary); padding: 20px 0 0; opacity: 0.6; }
-    @media (max-width: 540px) {
-      .input-grid, .kpi-grid, .forecast-grid { grid-template-columns: 1fr; }
-    }
-    /* 新增检查器样式 */
     .checker-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .checker-item { flex: 1; }
     .checker-item input { width: 100%; padding: 12px; background: rgba(44,44,46,0.7); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: var(--font-number); margin-top: 6px; }
     .result-badge { display: inline-block; padding: 6px 16px; border-radius: 40px; font-weight: 600; margin-top: 8px; }
     .warning-msg { background: rgba(255,69,58,0.2); padding: 10px; border-radius: 20px; margin-top: 10px; color: #ff6b5e; }
-    .countdown-text { font-size: 0.9rem; font-weight: 600; background: rgba(10,132,255,0.2); padding: 6px 14px; border-radius: 40px; display: inline-block; }
+    @media (max-width: 540px) {
+      .input-grid, .kpi-grid, .forecast-grid, .checker-grid { grid-template-columns: 1fr; }
+      .checker-grid { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
 
-<!-- 新增图片（可替换为你的图片链接） -->
-<div class="header-img">
-  <img src="https://placehold.co/800x200/1a1a24/white?text=📊+五年投资实验+·+季度检视" alt="投资计划头图">
-</div>
+<!-- 装饰条（代替图片） -->
+<div style="background: linear-gradient(90deg, #ffcc00, #ff3b30, #0a84ff); height: 6px; width: 100%; border-radius: 4px; margin-bottom: 20px;"></div>
 
 <header style="margin-bottom: 16px;">
   <div style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #ffcc00, #ff3b30, #0a84ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📊 持仓监视</div>
   <div style="font-size: 0.85rem; color: var(--text-secondary);">⚡ 五年投资实验 · 2026.05 – 2031.04</div>
 </header>
 
-<!-- ========== 投资计划总览（保留原有完整内容） ========== -->
+<!-- 投资计划总览 -->
 <div class="card">
-  <div class="section-header">
-    <div class="section-icon">📋</div>
-    <div class="section-title">🗓️ 投资计划总览</div>
-  </div>
-  <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">📌 主账户 · 每月定投（自动扣款）</div>
-  <table class="plan-table">
-    <thead><tr><th>💼 基金名称</th><th>🔢 代码</th><th>🎯 角色</th><th>💰 月投金额</th><th>⏰ 扣款频率</th></tr></thead>
-    <tbody>
-      <tr><td style="font-weight:600;">🌍 天弘标普500(QDII-FOF)A</td><td>007721</td><td><span class="plan-role attack">🚀 进攻核心</span></td><td>约2,000元</td><td>每个交易日100元</td></tr>
-      <tr><td style="font-weight:600;">🏗️ 摩根港股红利指数A</td><td>005051</td><td><span class="plan-role assist">⚓ 价值辅助</span></td><td>800元</td><td>每周三200元</td></tr>
-      <tr><td style="font-weight:600;">🛡️ 宝盈盈润纯债A</td><td>006242</td><td><span class="plan-role defense">🏰 防守压舱石</span></td><td>900元</td><td>每月15日</td></tr>
-      <tr><td style="font-weight:600;">💵 余额宝（计划内）</td><td>—</td><td><span class="plan-role cash">🪣 灵活备用</span></td><td>300元</td><td>每月1日手动转入</td></tr>
-      <tr style="font-weight:700; border-top:1px solid rgba(255,255,255,0.1);"><td>📊 合计</td><td></td><td></td><td>约4,000元/月</td><td></td></tr>
-    </tbody>
-  </table>
+  <div class="section-header"><div class="section-icon">📋</div><div class="section-title">🗓️ 投资计划总览</div></div>
+  <div style="font-size:0.7rem; font-weight:600; margin-bottom:8px;">📌 主账户 · 每月定投（自动扣款）</div>
+  <table class="plan-table"><thead><tr><th>💼 基金名称</th><th>🔢 代码</th><th>🎯 角色</th><th>💰 月投金额</th><th>⏰ 扣款频率</th></tr></thead>
+  <tbody>
+    <tr><td>🌍 天弘标普500(QDII-FOF)A</td><td>007721</td><td><span class="plan-role attack">🚀 进攻核心</span></td><td>约2,000元</td><td>每个交易日100元</td></tr>
+    <tr><td>🏗️ 摩根港股红利指数A</td><td>005051</td><td><span class="plan-role assist">⚓ 价值辅助</span></td><td>800元</td><td>每周三200元</td></tr>
+    <tr><td>🛡️ 宝盈盈润纯债A</td><td>006242</td><td><span class="plan-role defense">🏰 防守压舱石</span></td><td>900元</td><td>每月15日</td></tr>
+    <tr><td>💵 余额宝（计划内）</td><td>—</td><td><span class="plan-role cash">🪣 灵活备用</span></td><td>300元</td><td>每月1日手动转入</td></tr>
+    <tr style="font-weight:700; border-top:1px solid rgba(255,255,255,0.1);"><td>📊 合计</td><td></td><td></td><td>约4,000元/月</td><td></td></tr>
+  </tbody></table>
   <div class="plan-divider"></div>
-  <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">💸 闲钱处理规则（每月金额不定）</div>
+  <div style="font-size:0.7rem; font-weight:600; margin-bottom:8px;">💸 闲钱处理规则（每月金额不定）</div>
   <div class="plan-rule-item"><span class="plan-rule-num">❶</span><span>每月闲钱（1,000-4,000元不等）→ <strong>全部手动转入余额宝</strong></span></div>
   <div class="plan-rule-item"><span class="plan-rule-num">❷</span><span>季度检视日 → 余额宝留 <strong>5,000-10,000元</strong> 作应急备用</span></div>
   <div class="plan-rule-item"><span class="plan-rule-num">❸</span><span>超出部分 → <strong>一次性买入006242纯债</strong></span></div>
   <div class="plan-divider"></div>
-  <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">🛰️ 卫星仓（保留，不新增定投）</div>
-  <div style="font-size:0.7rem; color:var(--text-secondary); margin-bottom:6px;">🔵 华夏全球科技先锋 · 🔵 广发全球精选 · 🔵 易方达全球成长A/C</div>
+  <div style="font-size:0.7rem; font-weight:600; margin-bottom:8px;">🛰️ 卫星仓（保留，不新增定投）</div>
+  <div style="font-size:0.7rem; margin-bottom:6px;">🔵 华夏全球科技先锋 · 🔵 广发全球精选 · 🔵 易方达全球成长A/C</div>
   <div class="plan-divider"></div>
-  <div style="font-size:0.7rem; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">📜 卖出规则</div>
-  <div class="plan-rule-item"><span class="plan-rule-num">❶</span><span>席勒CAPE > 40 → 季度检视日卖出标普500市值的1/3，转入纯债 <span style="font-size:0.65rem; color:var(--blue);">（卖出金额<1,000元时暂不执行，累积到下次）</span></span></div>
+  <div style="font-size:0.7rem; font-weight:600; margin-bottom:8px;">📜 卖出规则</div>
+  <div class="plan-rule-item"><span class="plan-rule-num">❶</span><span>席勒CAPE > 40 → 季度检视日卖出标普500市值的1/3，转入纯债 <span style="font-size:0.65rem; color:var(--blue);">（卖出金额<1,000元时暂不执行）</span></span></div>
   <div class="plan-rule-item"><span class="plan-rule-num">❷</span><span>卫星仓累计盈利从最高点回撤 > 15% → 卖出利润的50%，转入纯债</span></div>
   <div class="plan-rule-item"><span class="plan-rule-num">❸</span><span>卫星仓占总资产 > 60% → 强制赎回超出部分，转入纯债</span></div>
   <div class="plan-rule-item"><span class="plan-rule-num">❹</span><span>余额宝占总资产 > 50% → 季度检视日超出部分转入纯债</span></div>
@@ -191,10 +152,10 @@
 <!-- 下次检视日 + 倒计时 -->
 <div class="card">
   <div class="alert-row">
-    <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);"></span>🗓️ 下次季度检视日：<span id="nextReviewDisplay">--</span></span>
+    <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); margin-right:6px;"></span>🗓️ 下次季度检视日：<span id="nextReviewDisplay">--</span></span>
     <span id="countdownSpan" class="alert-chip">--</span>
   </div>
-  <div class="sentiment-bar" style="background:rgba(44,44,46,0.3); border-radius:20px; padding:12px; margin-top:12px;">
+  <div style="background:rgba(44,44,46,0.3); border-radius:20px; padding:12px; margin-top:12px;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div id="sentimentEmoji" style="font-size:1.8rem;">🟠</div>
       <div><div id="sentimentText" style="font-weight:600;">🌡️ 市场明显高估 · 警戒区间</div><div id="sentimentAdvice" style="font-size:0.7rem; color:var(--text-secondary);">💡 继续定投，不追加，等待检视日</div></div>
@@ -202,7 +163,7 @@
   </div>
 </div>
 
-<!-- ========== 数据更新卡片（保留原有所有输入） ========== -->
+<!-- 数据更新 -->
 <div class="card">
   <div class="section-header"><div class="section-icon">📝</div><div class="section-title">✏️ 数据更新</div></div>
   <div class="input-grid">
@@ -236,17 +197,11 @@
   </div>
 </div>
 
-<!-- 持仓深度分析（动态） -->
-<div class="card">
-  <div class="section-header"><div class="section-icon">🔍</div><div class="section-title">📋 持仓深度分析</div></div>
-  <div id="analysisList"></div>
-</div>
+<!-- 持仓深度分析 -->
+<div class="card"><div class="section-header"><div class="section-icon">🔍</div><div class="section-title">📋 持仓深度分析</div></div><div id="analysisList"></div></div>
 
 <!-- 规则状态 -->
-<div class="card">
-  <div class="section-header"><div class="section-icon">⚖️</div><div class="section-title">✅ 规则状态</div></div>
-  <div id="ruleList"></div>
-</div>
+<div class="card"><div class="section-header"><div class="section-icon">⚖️</div><div class="section-title">✅ 规则状态</div></div><div id="ruleList"></div></div>
 
 <!-- 持仓结构饼图 + KPI -->
 <div class="card">
@@ -273,7 +228,7 @@
   <div style="text-align:center; font-size:0.6rem; margin-top:8px;">⚠️ 预测基于复利公式，仅供参考。</div>
 </div>
 
-<!-- ========== 新增：卫星仓占比检查器 + 实时饼图 ========== -->
+<!-- 卫星仓占比检查器 + 实时饼图 -->
 <div class="card">
   <div class="section-header"><div class="section-icon">⚙️</div><div class="section-title">📊 卫星仓占比超60%检查器</div></div>
   <div class="checker-grid">
@@ -281,10 +236,8 @@
     <div class="checker-item"><label>💰 总资产 (元)</label><input type="number" id="totalManual" step="100" value="81759"></div>
   </div>
   <div id="satCheckerResult" style="margin-top: 12px;"></div>
-  <div style="max-width: 220px; margin: 16px auto 0;">
-    <canvas id="simpleSatChart" width="200" height="200"></canvas>
-  </div>
-  <div style="text-align:center; font-size:0.7rem; color:var(--text-secondary); margin-top: 8px;">👆 修改上方数值，占比和饼图实时更新</div>
+  <div style="max-width: 220px; margin: 16px auto 0;"><canvas id="simpleSatChart" width="200" height="200"></canvas></div>
+  <div style="text-align:center; font-size:0.7rem; margin-top:8px;">👆 修改上方数值，占比和饼图实时更新</div>
 </div>
 
 <!-- 三条铁律 -->
@@ -300,242 +253,210 @@
 <footer>⚡ 五年投资实验 · 持仓监视 · 纪律驱动 ⚡</footer>
 
 <script>
-  // ----------------------------- 原有全部脚本（完整保留）---------------------------------
-  (function() {
-    // 辅助函数
-    function getFirstSaturday(year, month) {
-      const d = new Date(year, month - 1, 1);
-      d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7);
-      d.setHours(10, 0, 0, 0);
-      return d;
-    }
-    function getNextReviewDate() {
-      const now = new Date();
-      const months = [1, 4, 7, 10];
-      let candidates = [];
-      for (let y = now.getFullYear(); y <= now.getFullYear() + 1; y++) {
-        for (const m of months) {
-          const d = getFirstSaturday(y, m);
-          if (d > now) candidates.push(d);
-        }
-      }
-      candidates.sort((a,b) => a - b);
-      return candidates[0] || null;
-    }
-    function formatCN(d) {
-      const w = ['日', '一', '二', '三', '四', '五', '六'];
-      return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（周${w[d.getDay()]}）`;
-    }
-    function updateReviewDateDisplay() {
-      const next = getNextReviewDate();
-      if (next) document.getElementById('nextReviewDisplay').textContent = formatCN(next);
-      return next;
-    }
-    function updateCountdown() {
-      const next = getNextReviewDate();
-      if (!next) { document.getElementById('countdownSpan').innerHTML = '📅 检视日已过'; return; }
-      const now = new Date();
-      const diff = next - now;
-      if (diff <= 0) { document.getElementById('countdownSpan').innerHTML = '📢 检视日已到，请尽快检视！'; return; }
-      const days = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      document.getElementById('countdownSpan').innerHTML = `⏳ 剩余 ${days}天 ${hours}小时`;
-    }
-
-    function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
-
-    function read() {
-      return {
-        cape: g('cape'), totalAssets: g('totalAssets') || 1,
-        sp500Value: g('sp500Value'), hkValue: g('hkValue'),
-        bondValue: g('bondValue'), yuebao: g('yuebao'),
-        satelliteValue: g('satelliteValue'), satelliteProfit: g('satelliteProfit'),
-        satelliteProfitHigh: g('satelliteProfitHigh') || g('satelliteProfit'),
-        huaxiaValue: g('huaxiaValue'), huaxiaProfit: g('huaxiaProfit'),
-        guangfaValue: g('guangfaValue'), guangfaProfit: g('guangfaProfit'),
-        yfdAValue: g('yfdAValue'), yfdAProfit: g('yfdAProfit'),
-        yfdCValue: g('yfdCValue'), yfdCProfit: g('yfdCProfit'),
-      };
-    }
-    function compute(d) {
-      const satPct = (d.satelliteValue / d.totalAssets) * 100;
-      const ybPct = (d.yuebao / d.totalAssets) * 100;
-      const dd = d.satelliteProfitHigh > 0 ? ((d.satelliteProfitHigh - d.satelliteProfit) / d.satelliteProfitHigh) * 100 : 0;
-      const r1Amt = d.cape > 40 && d.sp500Value > 0 ? Math.round(d.sp500Value / 3) : 0;
-      const r1Deferred = r1Amt > 0 && r1Amt < 1000;
-      return { satPct, ybPct, dd, r1: d.cape > 40, r1Amt, r1Deferred, r2: dd > 15, r2Amt: dd > 15 ? Math.round(d.satelliteProfit * 0.5) : 0, r3: satPct > 60, r3Amt: satPct > 60 ? Math.round(d.satelliteValue - d.totalAssets * 0.6) : 0, r4: ybPct > 50, r4Amt: ybPct > 50 ? Math.round(d.yuebao - d.totalAssets * 0.5) : 0 };
-    }
-
-    function renderAnalysis(d, res) {
-      const total = d.totalAssets;
-      const huaxiaTriggerLine = Math.round(d.huaxiaProfit * 0.85);
-      const huaxiaSellAmount = Math.round(d.huaxiaProfit * 0.5);
-      const guangfaTriggerLine = Math.round(d.guangfaProfit * 0.85);
-      const guangfaSellAmount = Math.round(d.guangfaProfit * 0.5);
-      const yfdTriggerLine = Math.round((d.yfdAProfit + d.yfdCProfit) * 0.85);
-      const yfdSellAmount = Math.round((d.yfdAProfit + d.yfdCProfit) * 0.5);
-      const items = [
-        { cls: 'sat', name: '🔵 华夏全球科技先锋混合', role: '卫星仓 · AI算力核心', value: d.huaxiaValue, profit: d.huaxiaProfit, pct: ((d.huaxiaValue / total)*100).toFixed(1), analysis: `📈 累计盈利 <strong>¥${d.huaxiaProfit.toLocaleString()}</strong>，表现强劲。`, triggerText: `📉 若累计盈利降至 <strong>¥${huaxiaTriggerLine.toLocaleString()}</strong> 以下，需卖出利润50%即 ¥${huaxiaSellAmount.toLocaleString()} 转纯债。`, action: '👉 继续持有，不新增。', cls2: 'sat' },
-        { cls: 'sat', name: '🔵 广发全球精选股票', role: '卫星仓 · 全球科技成长', value: d.guangfaValue, profit: d.guangfaProfit, pct: ((d.guangfaValue / total)*100).toFixed(1), analysis: `📈 累计盈利 <strong>¥${d.guangfaProfit.toLocaleString()}</strong>。`, triggerText: `📉 若降至 ¥${guangfaTriggerLine.toLocaleString()} 以下，卖出利润50%约 ¥${guangfaSellAmount.toLocaleString()}。`, action: '👉 继续持有。', cls2: 'sat' },
-        { cls: 'sat', name: '🔵 易方达全球成长A/C', role: '卫星仓 · 补充敞口', value: d.yfdAValue + d.yfdCValue, profit: d.yfdAProfit + d.yfdCProfit, pct: (((d.yfdAValue+d.yfdCValue)/total)*100).toFixed(1), analysis: `📋 合计市值 ¥${(d.yfdAValue+d.yfdCValue).toLocaleString()}，占比较小。`, triggerText: `📉 若盈利降至 ¥${yfdTriggerLine.toLocaleString()} 以下，卖出利润50%约 ¥${yfdSellAmount.toLocaleString()}。`, action: '👉 保留观察，不清仓。', cls2: 'sat' },
-        { cls: 'sp', name: '🌍 天弘标普500', role: '主账户 · 全球进攻核心', value: d.sp500Value, profit: d.sp500Value - 1700, pct: ((d.sp500Value / total)*100).toFixed(1), analysis: res.r1 ? (res.r1Deferred ? `⚠️ CAPE超40，卖出金额不足1,000元，暂缓执行。` : `⚠️ CAPE超40，需卖出1/3约 ¥${res.r1Amt.toLocaleString()} 转纯债。`) : `当前继续每日定投。`, action: res.r1 ? (res.r1Deferred ? '👉 累积到下次检视日。' : '👉 季度检视日执行卖出。') : '👉 继续定投。', cls2: 'sp', deferred: res.r1Deferred },
-        { cls: 'hk', name: '🏗️ 摩根港股红利指数A', role: '主账户 · 港股价值辅助', value: d.hkValue, profit: d.hkValue - 450, pct: ((d.hkValue / total)*100).toFixed(1), analysis: `坚持每周三定投。`, action: '👉 坚持定投。', cls2: 'hk' },
-        { cls: 'bond', name: '🛡️ 宝盈盈润纯债A', role: '防守压舱石', value: d.bondValue, profit: d.bondValue - 1640, pct: ((d.bondValue / total)*100).toFixed(1), analysis: `纯债提供稳定防御。`, action: '👉 每月15日定投。', cls2: 'bond' },
-        { cls: 'cash', name: '💵 余额宝', role: '灵活备用', value: d.yuebao, profit: 0, pct: ((d.yuebao / total)*100).toFixed(1), analysis: res.r4 ? `⚠️ 余额宝占比超50%，需将超出部分约 ¥${res.r4Amt.toLocaleString()} 转入纯债。` : `当前占比正常。`, action: res.r4 ? '👉 季度检视日转入纯债。' : '👉 闲钱暂存。', cls2: 'cash' }
-      ];
-      document.getElementById('analysisList').innerHTML = items.map(item => `
-        <div class="analysis-card ${item.cls2}">
-          <div class="analysis-header"><span class="analysis-name">${item.name}</span><span class="analysis-role ${item.cls2}">${item.role}</span></div>
-          <div class="analysis-body">💰 市值 ¥${item.value.toLocaleString()} &nbsp;占比 ${item.pct}% &nbsp;📈 盈亏 ${item.profit>=0?'+':''}¥${item.profit.toLocaleString()}<br>${item.analysis}<br>${item.triggerText ? `<div class="trigger-info" style="margin-top:6px;">${item.triggerText}</div>` : ''}<div style="margin-top:6px;">${item.action}</div></div>
-        </div>`).join('');
-    }
-
-    function renderRules(res) {
-      const items = [
-        { name: '📜 标普500极端高估', trig: res.r1, deferred: res.r1Deferred, detail: res.r1 ? (res.r1Deferred ? `卖出金额约¥${res.r1Amt}，不足1000元暂缓` : `卖出1/3 ≈ ¥${res.r1Amt} → 纯债`) : '未触发', safe: '未触发' },
-        { name: '📜 卫星仓回撤止盈 (>15%)', trig: res.r2, detail: `赎回利润50% ≈ ¥${res.r2Amt} → 纯债`, safe: `回撤 ${res.dd.toFixed(1)}%，未触发` },
-        { name: '📜 卫星仓强制降仓 (>60%)', trig: res.r3, detail: `赎回超出部分 ≈ ¥${res.r3Amt} → 纯债`, safe: `占比 ${res.satPct.toFixed(1)}%，未触发` },
-        { name: '📜 余额宝再平衡 (>50%)', trig: res.r4, detail: `超出部分 ≈ ¥${res.r4Amt} → 纯债`, safe: `占比 ${res.ybPct.toFixed(1)}%，未触发` },
-      ];
-      document.getElementById('ruleList').innerHTML = items.map(r => {
-        const badgeClass = r.trig ? (r.deferred ? 'badge-info' : 'badge-warn') : 'badge-ok';
-        const badgeText = r.trig ? (r.deferred ? '⏸️ 暂缓' : '⚠️ 触发') : '✅ 正常';
-        return `<div class="rule-item"><div><div class="rule-name">${r.name}</div><div class="rule-desc">${r.trig ? r.detail : r.safe}</div></div><span class="rule-badge ${badgeClass}">${badgeText}</span></div>`;
-      }).join('');
-    }
-
-    let chartInst = null;
-    function renderChart(d) {
-      const ctx = document.getElementById('allocationChart').getContext('2d');
-      if (chartInst) chartInst.destroy();
-      const labels = ['🛰️ 卫星仓', '🌍 标普500', '🏗️ 港股红利', '🛡️ 纯债', '💵 余额宝'];
-      const values = [d.satelliteValue, d.sp500Value, d.hkValue, d.bondValue, d.yuebao];
-      const colors = ['#ff9f0a', '#30d158', '#ff9f0a', '#bf5af2', '#636366'];
-      chartInst = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#1c1c1e', borderWidth: 2 }] }, options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${((c.raw / d.totalAssets)*100).toFixed(1)}%` } } } } });
-      document.getElementById('chartLegend').innerHTML = labels.map((l,i) => `<span><span class="legend-dot" style="background:${colors[i]};"></span>${l} ${((values[i]/d.totalAssets)*100).toFixed(1)}%</span>`).join('');
-    }
-    function renderKPIs(d, res) {
-      const ov = (((d.satelliteValue + d.sp500Value + d.hkValue) / d.totalAssets) * 100).toFixed(1);
-      const df = (((d.bondValue + d.yuebao) / d.totalAssets) * 100).toFixed(1);
-      const cb = ((d.yuebao / (d.bondValue + d.yuebao || 1)) * 100).toFixed(1);
-      document.getElementById('overseasExposure').textContent = ov + '%';
-      document.getElementById('defenseRatio').textContent = df + '%';
-      document.getElementById('drawdownDisplay').textContent = res.dd.toFixed(1) + '%';
-      document.getElementById('cashBondRatio').textContent = cb + '% (现金)';
-      document.getElementById('overseasBar').style.width = ov + '%';
-      document.getElementById('defenseBar').style.width = df + '%';
-      document.getElementById('drawdownBar').style.width = Math.min(res.dd,100) + '%';
-      document.getElementById('cashBar').style.width = cb + '%';
-    }
-    function renderForecast() {
-      const P = g('totalAssets') || 81759;
-      const monthlyAdd = g('monthlyAdd') || 5000;
-      const n = 60;
-      const rCons = (g('retConservative')||3)/100/12;
-      const rNeut = (g('retNeutral')||5.5)/100/12;
-      const rOpt = (g('retOptimistic')||8)/100/12;
-      function fv(principal, add, rate, periods) {
-        if (rate===0) return principal + add*periods;
-        let total = principal * Math.pow(1+rate, periods);
-        total += add * ((Math.pow(1+rate, periods)-1)/rate);
-        return Math.round(total);
-      }
-      document.getElementById('forecastBase').textContent = P.toLocaleString();
-      document.getElementById('fvConservative').textContent = '¥' + fv(P, monthlyAdd, rCons, n).toLocaleString();
-      document.getElementById('fvNeutral').textContent = '¥' + fv(P, monthlyAdd, rNeut, n).toLocaleString();
-      document.getElementById('fvOptimistic').textContent = '¥' + fv(P, monthlyAdd, rOpt, n).toLocaleString();
-    }
-
-    function renderSentiment(cape) {
-      const emoji = document.getElementById('sentimentEmoji');
-      const text = document.getElementById('sentimentText');
-      const advice = document.getElementById('sentimentAdvice');
-      if (cape>44) { emoji.textContent='🔴'; text.textContent='🌡️ 市场极度高估 · 泡沫区间'; advice.textContent='💡 检视日务必执行CAPE卖出规则'; }
-      else if (cape>40) { emoji.textContent='🟠'; text.textContent='🌡️ 市场明显高估 · 警戒区间'; advice.textContent='💡 继续定投，不追加，等待检视日'; }
-      else if (cape>28) { emoji.textContent='🟡'; text.textContent='🌡️ 市场中性偏高'; advice.textContent='💡 按计划执行定投，保持节奏'; }
-      else if (cape>18) { emoji.textContent='🟢'; text.textContent='🌡️ 市场估值合理'; advice.textContent='💡 安心定投，无需调整'; }
-      else { emoji.textContent='🟢'; text.textContent='🌡️ 市场低估 · 机会区间'; advice.textContent='💡 可考虑在检视日讨论适当加仓'; }
-    }
-
-    function refreshAll() {
-      const d = read();
-      const res = compute(d);
-      renderSentiment(d.cape);
-      renderAnalysis(d, res);
-      renderRules(res);
-      renderChart(d);
-      renderKPIs(d, res);
-      renderForecast();
-      // 同步卫星仓检查器的默认值
-      const satManual = document.getElementById('satManual');
-      const totalManual = document.getElementById('totalManual');
-      if (satManual && totalManual) {
-        satManual.value = d.satelliteValue;
-        totalManual.value = d.totalAssets;
-        updateSatelliteChecker();
+(function() {
+  // 辅助函数
+  function getFirstSaturday(year, month) {
+    const d = new Date(year, month - 1, 1);
+    d.setDate(d.getDate() + (6 - d.getDay() + 7) % 7);
+    d.setHours(10, 0, 0, 0);
+    return d;
+  }
+  function getNextReviewDate() {
+    const now = new Date();
+    const months = [1, 4, 7, 10];
+    let candidates = [];
+    for (let y = now.getFullYear(); y <= now.getFullYear() + 1; y++) {
+      for (const m of months) {
+        const d = getFirstSaturday(y, m);
+        if (d > now) candidates.push(d);
       }
     }
+    candidates.sort((a,b) => a - b);
+    return candidates[0] || null;
+  }
+  function formatCN(d) {
+    const w = ['日', '一', '二', '三', '四', '五', '六'];
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（周${w[d.getDay()]}）`;
+  }
+  function updateReviewDateDisplay() {
+    const next = getNextReviewDate();
+    if (next) document.getElementById('nextReviewDisplay').textContent = formatCN(next);
+    return next;
+  }
+  function updateCountdown() {
+    const next = getNextReviewDate();
+    if (!next) { document.getElementById('countdownSpan').innerHTML = '📅 检视日已过'; return; }
+    const now = new Date();
+    const diff = next - now;
+    if (diff <= 0) { document.getElementById('countdownSpan').innerHTML = '📢 检视日已到，请尽快检视！'; return; }
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    document.getElementById('countdownSpan').innerHTML = `⏳ 剩余 ${days}天 ${hours}小时`;
+  }
 
-    function saveData() {
-      const keys = ['cape','totalAssets','sp500Value','hkValue','bondValue','yuebao','satelliteValue','satelliteProfit','satelliteProfitHigh','huaxiaValue','huaxiaProfit','guangfaValue','guangfaProfit','yfdAValue','yfdAProfit','yfdCValue','yfdCProfit','monthlyAdd','retConservative','retNeutral','retOptimistic'];
-      const obj = {};
-      keys.forEach(k => { const el = document.getElementById(k); if (el) obj[k] = el.value; });
-      localStorage.setItem('fiveYearPlanData', JSON.stringify(obj));
-      alert('✅ 数据已保存');
-    }
-    function loadData() {
-      const raw = localStorage.getItem('fiveYearPlanData');
-      if (!raw) return alert('📭 无存档');
-      const data = JSON.parse(raw);
-      Object.keys(data).forEach(k => { const el = document.getElementById(k); if (el) el.value = data[k]; });
-      refreshAll();
-    }
+  function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
-    // 新增卫星仓检查器 + 简单饼图
-    let simpleChart = null;
-    function updateSatelliteChecker() {
-      const satVal = parseFloat(document.getElementById('satManual')?.value) || 0;
-      const totalVal = parseFloat(document.getElementById('totalManual')?.value) || 1;
-      const ratio = (satVal / totalVal) * 100;
-      const isOver = ratio > 60;
-      const excess = isOver ? satVal - totalVal * 0.6 : 0;
-      const resultDiv = document.getElementById('satCheckerResult');
-      resultDiv.innerHTML = `
-        <div class="result-badge" style="background:${isOver ? 'rgba(255,69,58,0.2)' : 'rgba(48,209,88,0.2)'}">
-          📊 卫星仓占比 = <strong style="font-size:1.2rem;">${ratio.toFixed(1)}%</strong>
-          ${isOver ? '<span style="color:#ff3b30;"> ⚠️ 超过60%！</span>' : '<span style="color:#34c759;"> ✅ 未超过60%</span>'}
-        </div>
-        ${isOver ? `<div class="warning-msg">🚨 超出金额：<strong>¥${excess.toLocaleString()}</strong>，根据规则③需强制赎回超出部分转纯债。</div>` : ''}
-      `;
-      // 更新简单饼图
-      const ctxSimple = document.getElementById('simpleSatChart')?.getContext('2d');
-      if (ctxSimple) {
-        if (simpleChart) simpleChart.destroy();
-        simpleChart = new Chart(ctxSimple, {
-          type: 'doughnut',
-          data: { labels: ['🛰️ 卫星仓', '🏦 主账户'], datasets: [{ data: [satVal, totalVal - satVal], backgroundColor: ['#ff9f0a', '#0a84ff'], borderWidth: 0, cutout: '55%' }] },
-          options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } }, tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${((ctx.raw / totalVal)*100).toFixed(1)}%` } } } }
-        });
-      }
-    }
+  function read() {
+    return {
+      cape: g('cape'), totalAssets: g('totalAssets') || 1,
+      sp500Value: g('sp500Value'), hkValue: g('hkValue'),
+      bondValue: g('bondValue'), yuebao: g('yuebao'),
+      satelliteValue: g('satelliteValue'), satelliteProfit: g('satelliteProfit'),
+      satelliteProfitHigh: g('satelliteProfitHigh') || g('satelliteProfit'),
+      huaxiaValue: g('huaxiaValue'), huaxiaProfit: g('huaxiaProfit'),
+      guangfaValue: g('guangfaValue'), guangfaProfit: g('guangfaProfit'),
+      yfdAValue: g('yfdAValue'), yfdAProfit: g('yfdAProfit'),
+      yfdCValue: g('yfdCValue'), yfdCProfit: g('yfdCProfit'),
+    };
+  }
+  function compute(d) {
+    const satPct = (d.satelliteValue / d.totalAssets) * 100;
+    const ybPct = (d.yuebao / d.totalAssets) * 100;
+    const dd = d.satelliteProfitHigh > 0 ? ((d.satelliteProfitHigh - d.satelliteProfit) / d.satelliteProfitHigh) * 100 : 0;
+    const r1Amt = d.cape > 40 && d.sp500Value > 0 ? Math.round(d.sp500Value / 3) : 0;
+    const r1Deferred = r1Amt > 0 && r1Amt < 1000;
+    return { satPct, ybPct, dd, r1: d.cape > 40, r1Amt, r1Deferred, r2: dd > 15, r2Amt: dd > 15 ? Math.round(d.satelliteProfit * 0.5) : 0, r3: satPct > 60, r3Amt: satPct > 60 ? Math.round(d.satelliteValue - d.totalAssets * 0.6) : 0, r4: ybPct > 50, r4Amt: ybPct > 50 ? Math.round(d.yuebao - d.totalAssets * 0.5) : 0 };
+  }
 
-    // 绑定输入事件
-    document.getElementById('satManual')?.addEventListener('input', updateSatelliteChecker);
-    document.getElementById('totalManual')?.addEventListener('input', updateSatelliteChecker);
-    document.getElementById('monthlyAdd')?.addEventListener('input', renderForecast);
-    document.getElementById('retConservative')?.addEventListener('input', renderForecast);
-    document.getElementById('retNeutral')?.addEventListener('input', renderForecast);
-    document.getElementById('retOptimistic')?.addEventListener('input', renderForecast);
+  function renderAnalysis(d, res) {
+    const total = d.totalAssets;
+    const items = [
+      { cls: 'sat', name: '🔵 华夏全球科技先锋', role: '卫星仓 · AI算力核心', value: d.huaxiaValue, profit: d.huaxiaProfit, pct: ((d.huaxiaValue/total)*100).toFixed(1), analysis: `累计盈利 <strong>¥${d.huaxiaProfit.toLocaleString()}</strong>`, trigger: `回撤>15%止盈线: ${Math.round(d.huaxiaProfit*0.85).toLocaleString()}`, action: '继续持有，不新增' },
+      { cls: 'sat', name: '🔵 广发全球精选', role: '卫星仓 · 全球科技', value: d.guangfaValue, profit: d.guangfaProfit, pct: ((d.guangfaValue/total)*100).toFixed(1), analysis: `累计盈利 ¥${d.guangfaProfit.toLocaleString()}`, trigger: `止盈线: ${Math.round(d.guangfaProfit*0.85).toLocaleString()}`, action: '继续持有' },
+      { cls: 'sat', name: '🔵 易方达全球成长A/C', role: '卫星仓 · 补充', value: d.yfdAValue+d.yfdCValue, profit: d.yfdAProfit+d.yfdCProfit, pct: (((d.yfdAValue+d.yfdCValue)/total)*100).toFixed(1), analysis: `合计市值 ¥${(d.yfdAValue+d.yfdCValue).toLocaleString()}`, trigger: `止盈线: ${Math.round((d.yfdAProfit+d.yfdCProfit)*0.85).toLocaleString()}`, action: '保留观察' },
+      { cls: 'sp', name: '🌍 天弘标普500', role: '进攻核心', value: d.sp500Value, profit: d.sp500Value-1700, pct: ((d.sp500Value/total)*100).toFixed(1), analysis: res.r1 ? (res.r1Deferred ? `CAPE>40，卖出金额不足1000元暂缓` : `CAPE>40，需卖出1/3约¥${res.r1Amt.toLocaleString()}`) : '继续每日定投', action: res.r1 ? (res.r1Deferred ? '累积下次检视日' : '季度检视日执行卖出') : '继续定投' },
+      { cls: 'hk', name: '🏗️ 摩根港股红利', role: '价值辅助', value: d.hkValue, profit: d.hkValue-450, pct: ((d.hkValue/total)*100).toFixed(1), analysis: '坚持每周三定投', action: '坚持定投' },
+      { cls: 'bond', name: '🛡️ 宝盈盈润纯债', role: '防守压舱石', value: d.bondValue, profit: d.bondValue-1640, pct: ((d.bondValue/total)*100).toFixed(1), analysis: '纯债提供防御', action: '每月定投' },
+      { cls: 'cash', name: '💵 余额宝', role: '灵活备用', value: d.yuebao, profit: 0, pct: ((d.yuebao/total)*100).toFixed(1), analysis: res.r4 ? `占比超50%，需转出¥${res.r4Amt.toLocaleString()}至纯债` : '占比正常', action: res.r4 ? '季度检视日转出' : '闲钱暂存' }
+    ];
+    document.getElementById('analysisList').innerHTML = items.map(item => `
+      <div class="analysis-card ${item.cls}">
+        <div class="analysis-header"><span class="analysis-name">${item.name}</span><span class="analysis-role ${item.cls}">${item.role}</span></div>
+        <div class="analysis-body">💰 ¥${item.value.toLocaleString()} &nbsp;占比 ${item.pct}% &nbsp;📈 ${item.profit>=0?'+':''}¥${item.profit.toLocaleString()}<br>${item.analysis}<br>${item.trigger ? `<span style="color:var(--yellow);">📉 ${item.trigger}</span><br>` : ''}<strong>👉 ${item.action}</strong></div>
+      </div>`).join('');
+  }
 
-    window.refreshAll = refreshAll;
-    window.saveData = saveData;
-    window.loadData = loadData;
+  function renderRules(res) {
+    const rules = [
+      { name: '📜 标普500高估卖出', trig: res.r1, detail: res.r1 ? (res.r1Deferred ? `卖出金额不足1000元暂缓` : `卖出1/3 ≈ ¥${res.r1Amt.toLocaleString()}`) : '未触发', badge: res.r1 ? (res.r1Deferred ? 'info' : 'warn') : 'ok' },
+      { name: '📜 卫星仓回撤止盈', trig: res.r2, detail: res.r2 ? `卖出利润50% ≈ ¥${res.r2Amt.toLocaleString()}` : `回撤 ${res.dd.toFixed(1)}%`, badge: res.r2 ? 'warn' : 'ok' },
+      { name: '📜 卫星仓强制降仓', trig: res.r3, detail: res.r3 ? `赎回超出部分 ≈ ¥${res.r3Amt.toLocaleString()}` : `占比 ${res.satPct.toFixed(1)}%`, badge: res.r3 ? 'warn' : 'ok' },
+      { name: '📜 余额宝再平衡', trig: res.r4, detail: res.r4 ? `转出 ¥${res.r4Amt.toLocaleString()} 至纯债` : `占比 ${res.ybPct.toFixed(1)}%`, badge: res.r4 ? 'warn' : 'ok' }
+    ];
+    document.getElementById('ruleList').innerHTML = rules.map(r => `<div class="rule-item"><div><div class="rule-name">${r.name}</div><div class="rule-desc">${r.detail}</div></div><span class="rule-badge badge-${r.badge}">${r.trig ? (r.badge==='info'?'⏸️ 暂缓':'⚠️ 触发') : '✅ 正常'}</span></div>`).join('');
+  }
 
-    updateReviewDateDisplay();
-    updateCountdown();
+  let chartInst = null;
+  function renderChart(d) {
+    const ctx = document.getElementById('allocationChart').getContext('2d');
+    if (chartInst) chartInst.destroy();
+    const labels = ['🛰️ 卫星仓', '🌍 标普500', '🏗️ 港股红利', '🛡️ 纯债', '💵 余额宝'];
+    const values = [d.satelliteValue, d.sp500Value, d.hkValue, d.bondValue, d.yuebao];
+    const colors = ['#ff9f0a', '#30d158', '#ff9f0a', '#bf5af2', '#636366'];
+    chartInst = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#1c1c1e', borderWidth: 2 }] }, options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${((c.raw / d.totalAssets)*100).toFixed(1)}%` } } } } });
+    document.getElementById('chartLegend').innerHTML = labels.map((l,i) => `<span><span class="legend-dot" style="background:${colors[i]};"></span>${l} ${((values[i]/d.totalAssets)*100).toFixed(1)}%</span>`).join('');
+  }
+  function renderKPIs(d, res) {
+    const ov = (((d.satelliteValue + d.sp500Value + d.hkValue) / d.totalAssets) * 100).toFixed(1);
+    const df = (((d.bondValue + d.yuebao) / d.totalAssets) * 100).toFixed(1);
+    const cb = ((d.yuebao / (d.bondValue + d.yuebao || 1)) * 100).toFixed(1);
+    document.getElementById('overseasExposure').innerText = ov+'%';
+    document.getElementById('defenseRatio').innerText = df+'%';
+    document.getElementById('drawdownDisplay').innerText = res.dd.toFixed(1)+'%';
+    document.getElementById('cashBondRatio').innerText = cb+'% (现金)';
+    document.getElementById('overseasBar').style.width = ov+'%';
+    document.getElementById('defenseBar').style.width = df+'%';
+    document.getElementById('drawdownBar').style.width = Math.min(res.dd,100)+'%';
+    document.getElementById('cashBar').style.width = cb+'%';
+  }
+  function renderForecast() {
+    const P = g('totalAssets') || 81759;
+    const monthlyAdd = g('monthlyAdd') || 5000;
+    const n = 60;
+    const rCons = (g('retConservative')||3)/100/12;
+    const rNeut = (g('retNeutral')||5.5)/100/12;
+    const rOpt = (g('retOptimistic')||8)/100/12;
+    function fv(p,a,r,periods) { if(r===0) return p+a*periods; return Math.round(p*Math.pow(1+r,periods) + a*((Math.pow(1+r,periods)-1)/r)); }
+    document.getElementById('forecastBase').innerText = P.toLocaleString();
+    document.getElementById('fvConservative').innerText = '¥'+fv(P,monthlyAdd,rCons,n).toLocaleString();
+    document.getElementById('fvNeutral').innerText = '¥'+fv(P,monthlyAdd,rNeut,n).toLocaleString();
+    document.getElementById('fvOptimistic').innerText = '¥'+fv(P,monthlyAdd,rOpt,n).toLocaleString();
+  }
+  function renderSentiment(cape) {
+    const emoji = document.getElementById('sentimentEmoji'), txt = document.getElementById('sentimentText'), adv = document.getElementById('sentimentAdvice');
+    if(cape>44) { emoji.innerText='🔴'; txt.innerText='🌡️ 市场极度高估 · 泡沫区间'; adv.innerText='💡 检视日务必执行CAPE卖出规则'; }
+    else if(cape>40) { emoji.innerText='🟠'; txt.innerText='🌡️ 市场明显高估 · 警戒区间'; adv.innerText='💡 继续定投，不追加，等待检视日'; }
+    else if(cape>28) { emoji.innerText='🟡'; txt.innerText='🌡️ 市场中性偏高'; adv.innerText='💡 按计划执行定投，保持节奏'; }
+    else if(cape>18) { emoji.innerText='🟢'; txt.innerText='🌡️ 市场估值合理'; adv.innerText='💡 安心定投，无需调整'; }
+    else { emoji.innerText='🟢'; txt.innerText='🌡️ 市场低估 · 机会区间'; adv.innerText='💡 可考虑在检视日讨论适当加仓'; }
+  }
+
+  function refreshAll() {
+    const d = read(); const res = compute(d);
+    renderSentiment(d.cape);
+    renderAnalysis(d, res);
+    renderRules(res);
+    renderChart(d);
+    renderKPIs(d, res);
+    renderForecast();
+    // 同步卫星仓检查器
+    document.getElementById('satManual').value = d.satelliteValue;
+    document.getElementById('totalManual').value = d.totalAssets;
+    updateSatelliteChecker();
+  }
+
+  function saveData() {
+    const keys = ['cape','totalAssets','sp500Value','hkValue','bondValue','yuebao','satelliteValue','satelliteProfit','satelliteProfitHigh','huaxiaValue','huaxiaProfit','guangfaValue','guangfaProfit','yfdAValue','yfdAProfit','yfdCValue','yfdCProfit','monthlyAdd','retConservative','retNeutral','retOptimistic'];
+    const obj = {};
+    keys.forEach(k => { const el = document.getElementById(k); if(el) obj[k] = el.value; });
+    localStorage.setItem('fiveYearPlanData', JSON.stringify(obj));
+    alert('✅ 数据已保存');
+  }
+  function loadData() {
+    const raw = localStorage.getItem('fiveYearPlanData');
+    if(!raw) return alert('📭 无存档');
+    const data = JSON.parse(raw);
+    Object.keys(data).forEach(k => { const el = document.getElementById(k); if(el) el.value = data[k]; });
     refreshAll();
-    setInterval(() => { updateReviewDateDisplay(); updateCountdown(); }, 3600000);
-  })();
+  }
+
+  let simpleChart = null;
+  function updateSatelliteChecker() {
+    const satVal = parseFloat(document.getElementById('satManual')?.value) || 0;
+    const totalVal = parseFloat(document.getElementById('totalManual')?.value) || 1;
+    const ratio = (satVal / totalVal) * 100;
+    const isOver = ratio > 60;
+    const excess = isOver ? satVal - totalVal * 0.6 : 0;
+    const resultDiv = document.getElementById('satCheckerResult');
+    resultDiv.innerHTML = `
+      <div class="result-badge" style="background:${isOver ? 'rgba(255,69,58,0.2)' : 'rgba(48,209,88,0.2)'}">
+        📊 卫星仓占比 = <strong style="font-size:1.2rem;">${ratio.toFixed(1)}%</strong>
+        ${isOver ? '<span style="color:#ff3b30;"> ⚠️ 超过60%！</span>' : '<span style="color:#34c759;"> ✅ 未超过60%</span>'}
+      </div>
+      ${isOver ? `<div class="warning-msg">🚨 超出金额：<strong>¥${excess.toLocaleString()}</strong>，根据规则③需强制赎回超出部分转纯债。</div>` : ''}
+    `;
+    const ctxSimple = document.getElementById('simpleSatChart')?.getContext('2d');
+    if(ctxSimple) {
+      if(simpleChart) simpleChart.destroy();
+      simpleChart = new Chart(ctxSimple, {
+        type: 'doughnut',
+        data: { labels: ['🛰️ 卫星仓', '🏦 主账户'], datasets: [{ data: [satVal, totalVal - satVal], backgroundColor: ['#ff9f0a', '#0a84ff'], borderWidth: 0, cutout: '55%' }] },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } }, tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${((ctx.raw / totalVal)*100).toFixed(1)}%` } } } }
+      });
+    }
+  }
+
+  // 绑定事件
+  document.getElementById('satManual')?.addEventListener('input', updateSatelliteChecker);
+  document.getElementById('totalManual')?.addEventListener('input', updateSatelliteChecker);
+  document.getElementById('monthlyAdd')?.addEventListener('input', renderForecast);
+  document.getElementById('retConservative')?.addEventListener('input', renderForecast);
+  document.getElementById('retNeutral')?.addEventListener('input', renderForecast);
+  document.getElementById('retOptimistic')?.addEventListener('input', renderForecast);
+  window.refreshAll = refreshAll; window.saveData = saveData; window.loadData = loadData;
+  updateReviewDateDisplay(); updateCountdown(); refreshAll();
+  setInterval(() => { updateReviewDateDisplay(); updateCountdown(); }, 3600000);
+})();
 </script>
 </body>
 </html>
